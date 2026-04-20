@@ -1,0 +1,170 @@
+/* =========================================
+   1. VARIABLES Y TEMA OSCURO
+   ========================================= */
+:root {
+    --bg-base: #0B0C10;      /* Fondo principal muy oscuro */
+    --bg-panel: #14151C;     /* Paneles de controles y canvas */
+    --accent: #E94B7A;       /* Tu color rosa/rojo */
+    --accent-glow: rgba(233, 75, 122, 0.4);
+    --text-primary: #E2E8F0; /* Texto principal claro */
+    --text-secondary: #94A3B8; /* Texto secundario gris */
+    --border-color: #2D313F;
+    --font-main: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--bg-base);
+    color: var(--text-primary);
+    font-family: var(--font-main);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+}
+
+/* =========================================
+   2. NAVEGACIÓN (HEADER)
+   ========================================= */
+header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1.2rem;
+    background-color: var(--bg-panel);
+    border-bottom: 1px solid var(--border-color);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    z-index: 10;
+}
+
+.tabs-container {
+    display: flex;
+    gap: 3rem;
+}
+
+.tab-btn {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    position: relative;
+    transition: color 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.tab-btn:hover {
+    color: var(--text-primary);
+}
+
+.tab-btn.active {
+    color: var(--accent);
+}
+
+.tab-btn.active::after {
+    content: '';
+    position: absolute;
+    bottom: -19px; /* Ajustado al borde del header */
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background-color: var(--accent);
+    box-shadow: 0 -2px 10px var(--accent-glow);
+}
+
+/* =========================================
+   3. CONTENEDOR PRINCIPAL Y PANELES
+   ========================================= */
+main {
+    flex: 1;
+    padding: 2rem;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    overflow-y: auto;
+}
+
+/* Esta es la clase que inyecta VistaOhm.js */
+.module-container {
+    display: grid;
+    width: 100%;
+    max-width: 1200px;
+    grid-template-columns: 1fr 380px; /* Canvas más grande, controles a la derecha */
+    gap: 2rem;
+    animation: fadeIn 0.4s ease-out;
+}
+
+.canvas-panel, .controls-panel {
+    background-color: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+}
+
+.canvas-panel {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 500px; /* Altura mínima para que el circuito se vea bien */
+}
+
+canvas {
+    width: 100%;
+    height: 100%;
+    border-radius: 8px;
+}
+
+/* =========================================
+   4. TIPOGRAFÍA Y CONTROLES INTERNOS
+   ========================================= */
+.panel-title {
+    font-size: 1.2rem;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 1rem;
+    margin-bottom: 2rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+/* Estilización de los sliders (Inputs range) */
+input[type=range] {
+    -webkit-appearance: none;
+    width: 100%;
+    background: transparent;
+    margin-top: 8px;
+}
+
+input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    height: 16px;
+    width: 16px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    margin-top: -6px;
+    box-shadow: 0 0 10px var(--accent-glow);
+}
+
+input[type=range]::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 4px;
+    cursor: pointer;
+    background: var(--border-color);
+    border-radius: 2px;
+}
+
+/* Animación de entrada */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
