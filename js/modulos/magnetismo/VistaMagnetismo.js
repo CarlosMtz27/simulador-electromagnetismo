@@ -113,6 +113,9 @@ export class VistaMagnetismo {
                             <span style="font-size: 0.75rem; color: var(--text-secondary);">F. DE LORENTZ TOTAL</span>
                             <span id="val-fuerza-lorentz" style="color: var(--accent); font-weight: bold; font-family: monospace;">0.00 N</span>
                         </div>
+                        <div style="text-align: right; margin-top: 5px; font-size: 0.65rem; color: var(--text-secondary); font-style: italic;">
+                            ${DiccionarioMagnetismo.teoria.fuerzaFormula}
+                        </div>
                     </div>
                     </div>
 

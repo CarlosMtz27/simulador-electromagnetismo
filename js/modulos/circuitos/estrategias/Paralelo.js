@@ -29,7 +29,12 @@ export class EstrategiaParalelo {
 
         // dibujamos el lazo perimetral y luego trazamos cada una de las lineas verticales (ramas paralelas)
         ctx.beginPath();
-        ctx.roundRect(x0, y0, xFinal - x0, altoLazo, 25);
+        ctx.moveTo(x0, y0);
+        ctx.lineTo(xFinal - 25, y0);
+        ctx.arcTo(xFinal, y0, xFinal, y0 + 25, 25);
+        ctx.lineTo(xFinal, y0 + altoLazo - 25);
+        ctx.arcTo(xFinal, y0 + altoLazo, xFinal - 25, y0 + altoLazo, 25);
+        ctx.lineTo(x0, y0 + altoLazo);
         for (let i = 0; i < totalItems; i++) { ctx.moveTo(nodosX[i], y0); ctx.lineTo(nodosX[i], y0 + altoLazo); }
         ctx.stroke(); ctx.shadowBlur = 0;
 

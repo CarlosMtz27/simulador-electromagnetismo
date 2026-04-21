@@ -8,7 +8,9 @@ export const DiccionarioMagnetismo = {
         sinCorriente: "ESTADO: Circuito Abierto. Sin electrones en movimiento no hay campo magnético, por lo que el imán no afecta al cable.",
         conCorriente: "ESTADO: Corriente Activa. El flujo de electrones genera un campo magnético circular (Ley de Oersted) que interactúa con el imán.",
         fuerzaLorentz: "Fuerza detectada: La deflexión del cable es proporcional a la intensidad (I) y al campo magnético (B).",
-        polaridad: "Nota: Al invertir la polaridad o el sentido de la corriente, la dirección de la fuerza se invierte (Regla de la mano derecha)."
+        polaridad: "Nota: Al invertir la polaridad o el sentido de la corriente, la dirección de la fuerza se invierte (Regla de la mano derecha).",
+        fuerzaFormula: "F = I · L · B (L = 0.01 m, longitud efectiva del segmento de cable)"
+
     },
     controles: {
         corriente: "Intensidad de Corriente (A)",
