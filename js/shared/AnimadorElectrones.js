@@ -16,6 +16,7 @@ export class AnimadorElectrones {
         ctx.shadowColor = color;
 
         particulas.forEach((p, i) => {
+            if (p.caminoIdx === undefined) p.caminoIdx = Math.floor(Math.random() * caminosW.length);
             p.prog += velocidad;
             if (p.prog > 100) { 
                 p.prog = 0; 

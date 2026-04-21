@@ -27,6 +27,9 @@ export class ControladorOhm {
         this.modelo.alActualizar = () => { this.vista.actualizarUI(this.modelo); };
         this.modelo.verificarEstado();
         this.loop();
+        new ResizeObserver(() => {
+            this.vista.ajustarCanvas();
+            }).observe(this.vista.canvas.parentElement);
     }
 
     loop() {

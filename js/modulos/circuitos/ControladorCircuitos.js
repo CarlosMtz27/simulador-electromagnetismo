@@ -59,6 +59,9 @@ export class ControladorCircuitos {
         this.modelo.alActualizar = () => { this.vista.actualizarUI(this.modelo); };
         this.modelo.calcularEstado();
         this.loop();
+        new ResizeObserver(() => {
+            this.vista.ajustarCanvas();
+        }).observe(this.vista.canvas.parentElement);
     }
 
     loop() {

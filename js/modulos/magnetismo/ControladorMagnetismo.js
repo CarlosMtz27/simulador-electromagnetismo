@@ -44,6 +44,9 @@ export class ControladorMagnetismo {
         window.addEventListener('mouseup', () => this.isDragging = false);
 
         this.loop(performance.now());
+        new ResizeObserver(() => {
+            this.vista.ajustarCanvas();
+        }).observe(this.vista.canvas.parentElement);
     }
 
     onMouseDown(e) {

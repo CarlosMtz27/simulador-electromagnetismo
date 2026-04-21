@@ -1,5 +1,5 @@
 export class RenderizadorMundoReal {
-    static dibujar(ctx, w, h, modelo, resultados) {
+    static dibujar(ctx, w, h, modelo, resultados, particulas = []) {
         // limpiamos el lienzo por completo para preparar el nuevo frame
         ctx.clearRect(0, 0, w, h);
         
@@ -133,7 +133,43 @@ export class RenderizadorMundoReal {
 
         // dibujamos el interruptor de proteccion en la pared
         this.dibujarBreaker(ctx, xBreaker, yBreaker, estado);
+        
+        if (particulas.length > 0) {
+        this.dibujarElectronesEnCables(ctx, w, h, modelo, particulas);
     }
+    
+    }
+    static dibujarElectronesEnCables(ctx, w, h, modelo, particulas) {
+    if (modelo.estadoSistema !== 'operativo') return;
+
+    const yTechoArriba = h * 0.30 - 40;
+    const yTechoAbajo  = h * 0.75 - 40;
+    const xBreaker     = w * 0.05;
+    const xTroncal     = w * 0.80 + 30;
+    const color        = '#00E5FF';
+
+    ctx.fillStyle  = color;
+    ctx.shadowBlur = 6;
+    ctx.shadowColor = color;
+
+    particulas.forEach(p => {
+        p.prog = (p.prog + 0.4) % 100;
+        // recorrido simple: eje superior → troncal → eje inferior
+        const totalX = xTroncal - xBreaker;
+        const dist   = (p.prog / 100) * (totalX * 2 + (yTechoAbajo - yTechoArriba));
+        let px, py;
+        if (dist < totalX) {
+            px = xBreaker + dist; py = yTechoArriba;
+        } else if (dist < totalX + (yTechoAbajo - yTechoArriba)) {
+            px = xTroncal; py = yTechoArriba + (dist - totalX);
+        } else {
+            px = xTroncal - (dist - totalX - (yTechoAbajo - yTechoArriba));
+            py = yTechoAbajo;
+        }
+        ctx.beginPath(); ctx.arc(px, py, 2.5, 0, Math.PI * 2); ctx.fill();
+    });
+    ctx.shadowBlur = 0;
+}
 
     static dibujarFocoEdison(ctx, x, y, potencia, estaFundido, etiqueta) {
         // determinamos el nivel de intensidad en funcion de la energia simulada

@@ -46,7 +46,7 @@ export class VistaCircuitos {
         this.btnUndo = document.getElementById('btn-undo');
         this.valSecuencia = document.getElementById('val-secuencia');
 
-        this.particulas = Array.from({length: 80}, () => ({ prog: Math.random() * 100, rama: 0 }));
+        this.particulas = Array.from({length: 80}, () => ({ prog: Math.random() * 100 }));
         this.ajustarCanvas();
     }
 
@@ -275,7 +275,8 @@ export class VistaCircuitos {
         if (modelo.modoVista === 'diagrama') {
             RenderizadorDiagrama.dibujar(this.ctx, this.canvas.width, this.canvas.height, modelo, modelo.resultados, this.particulas);
         } else {
-            RenderizadorMundoReal.dibujar(this.ctx, this.canvas.width, this.canvas.height, modelo, modelo.resultados);
+            RenderizadorMundoReal.dibujar(this.ctx, this.canvas.width, this.canvas.height, modelo, modelo.resultados, this.particulas);
+
         }
     }
 }
