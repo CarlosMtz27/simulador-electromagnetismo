@@ -135,13 +135,14 @@ export class RenderizadorMundoReal {
         this.dibujarBreaker(ctx, xBreaker, yBreaker, estado);
         
         if (particulas.length > 0) {
-        this.dibujarElectronesEnCables(ctx, w, h, modelo, particulas);
+            this.dibujarElectronesEnCables(ctx, w, h, modelo, resultados, particulas);
     }
     
     }
-    static dibujarElectronesEnCables(ctx, w, h, modelo, particulas) {
-    if (modelo.estadoSistema !== 'operativo') return;
 
+    static dibujarElectronesEnCables(ctx, w, h, modelo, resultados, particulas) {
+    if (modelo.estadoSistema !== 'operativo' || resultados.iTotal < 0.001) return;
+    const velocidad = Math.min(resultados.iTotal * 0.25, 1.5);
     const yTechoArriba = h * 0.30 - 40;
     const yTechoAbajo  = h * 0.75 - 40;
     const xBreaker     = w * 0.05;
@@ -153,7 +154,7 @@ export class RenderizadorMundoReal {
     ctx.shadowColor = color;
 
     particulas.forEach(p => {
-        p.prog = (p.prog + 0.4) % 100;
+        p.prog = (p.prog + velocidad) % 100;
         // recorrido simple: eje superior → troncal → eje inferior
         const totalX = xTroncal - xBreaker;
         const dist   = (p.prog / 100) * (totalX * 2 + (yTechoAbajo - yTechoArriba));
