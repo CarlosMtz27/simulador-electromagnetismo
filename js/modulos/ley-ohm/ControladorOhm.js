@@ -17,6 +17,34 @@ export class ControladorOhm {
         this.vista.sliderP.addEventListener('input', (e) => this.modelo.setLimitePotencia(e.target.value));
         this.vista.selectCelular.addEventListener('change', (e) => this.modelo.setCelular(e.target.value));
         
+        // vinculamos las cajas de texto numérico para que actualicen el modelo y el slider en tiempo real
+        this.vista.inputV.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            if (!isNaN(val)) this.modelo.setVoltaje(val);
+        });
+        this.vista.inputR.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            if (!isNaN(val)) this.modelo.setResistencia(val);
+        });
+        this.vista.inputP.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            if (!isNaN(val)) this.modelo.setLimitePotencia(val);
+        });
+
+        // permitimos que al dar "Enter" o salir del foco se revalide y limpie la caja si quedó vacía
+        const confirmarInput = (e) => {
+            if (e.key === 'Enter') {
+                e.target.blur(); // Al presionar enter, quitamos el foco
+            } else if (e.type === 'blur') {
+                this.vista.actualizarUI(this.modelo); // Al perder el foco, forzamos restaurar valores válidos
+            }
+        };
+        ['keydown', 'blur'].forEach(evento => {
+            this.vista.inputV.addEventListener(evento, confirmarInput);
+            this.vista.inputR.addEventListener(evento, confirmarInput);
+            this.vista.inputP.addEventListener(evento, confirmarInput);
+        });
+
         // programamos el boton para saltar del modo laboratorio al modo de prueba de celulares
         this.vista.btnModo.addEventListener('click', () => {
             const nuevo = this.modelo.modoVista === 'diagrama' ? 'celular' : 'diagrama';

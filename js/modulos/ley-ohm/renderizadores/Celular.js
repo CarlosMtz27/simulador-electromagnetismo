@@ -1,7 +1,7 @@
 import { Tema } from '../../../shared/Tema.js';
 
 export class RenderizadorCelular {
-    static dibujar(ctx, x, y, idCelular, estado, bateria, humoObj) {
+    static dibujar(ctx, x, y, idCelular, estado, bateria, humoObj, modelo = null) {
         // guardamos la configuracion del lienzo y movemos nuestro punto cero al centro del dibujo para facilitar las matematicas
         ctx.save();
         ctx.translate(x, y); 
@@ -70,6 +70,73 @@ export class RenderizadorCelular {
         else {
             // si el telefono esta a salvo, procedemos a mostrar su interfaz de carga normal
             this.dibujarInterfazCarga(ctx, 0, 0, bateria, estado, parseInt(idCelular));
+        }
+
+        // --- PANEL DE TELEMETRÍA (DATOS FÍSICOS REALES) ---
+        if (modelo) {
+            const vCargador = modelo.voltaje;
+            const pCargador = modelo.limitePotencia;
+            const cel = modelo.celularSeleccionado;
+            
+            let potenciaReal = 0;
+            let corriente = 0;
+            let tempBat = 25; 
+            let protocolo = 'Ninguno';
+            let resistenciaReq = 0;
+
+            // Investigacion: Los telefonos no toman mas potencia de la que pueden manejar,
+            // excepto si hay un fallo de voltaje (quemado) donde hay cortocircuito (fuga termica).
+            if (estado === 'quemado') {
+                potenciaReal = 0;
+                corriente = 0;
+                resistenciaReq = 0.01; // Cortocircuito destruye el PMIC bajando la resistencia casi a cero
+                tempBat = 120 + Math.random() * 60; // Thermal Runaway genera temperaturas de +150 °C
+                protocolo = 'FALLO CATASTRÓFICO';
+            } else {
+                potenciaReal = Math.min(pCargador, cel.pMax);
+                corriente = potenciaReal / vCargador;
+                resistenciaReq = vCargador / corriente; // Ley de Ohm: R = V / I
+                
+                // Modelo fisico: base 28C + incremento segun potencia (120W llega a ~45C real)
+                tempBat = 28 + (potenciaReal / 120) * 17; 
+                
+                if (potenciaReal <= 5) protocolo = 'USB BC 1.2 (5W)';
+                else if (potenciaReal <= 15) protocolo = 'USB 3.0 / Lento';
+                else if (potenciaReal <= 45) protocolo = 'USB Power Delivery';
+                else protocolo = 'PPS / HyperCharge';
+            }
+
+            // Posicionamos el panel a la derecha del celular
+            const tx = ancho / 2 + 25; 
+            const ty = -alto / 2 + 5;
+
+            ctx.fillStyle = 'rgba(15, 20, 25, 0.85)';
+            ctx.beginPath(); ctx.roundRect(tx, ty, 175, 105, 6); ctx.fill();
+            
+            ctx.strokeStyle = estado === 'quemado' ? 'rgba(233, 75, 122, 0.6)' : (estado === 'rapido' ? 'rgba(0, 255, 0, 0.5)' : 'rgba(0, 229, 255, 0.5)');
+            ctx.lineWidth = 1; ctx.strokeRect(tx, ty, 175, 105);
+
+            ctx.textAlign = 'left';
+            ctx.fillStyle = estado === 'quemado' ? '#E94B7A' : (estado === 'rapido' ? '#00FF00' : '#00E5FF');
+            ctx.font = 'bold 11px sans-serif';
+            
+            if (estado === 'quemado') {
+                ctx.fillText(`Potencia: ¡SOBRECARGA!`, tx + 10, ty + 20);
+                ctx.fillText(`Corriente: >100 A`, tx + 10, ty + 35);
+            } else {
+                ctx.fillText(`Potencia: ${potenciaReal.toFixed(1)} W`, tx + 10, ty + 20);
+                ctx.fillText(`Corriente: ${corriente.toFixed(2)} A`, tx + 10, ty + 35);
+            }
+            
+            ctx.fillStyle = '#E2E8F0'; ctx.font = '10px sans-serif';
+            ctx.fillText(`Voltaje de bus: ${vCargador.toFixed(1)} V`, tx + 10, ty + 50);
+            ctx.fillText(`R. Interna (Req): ${resistenciaReq.toFixed(2)} Ω`, tx + 10, ty + 65);
+            
+            ctx.fillStyle = estado === 'quemado' ? '#FC8181' : '#F6AD55';
+            ctx.fillText(`Temp. Batería: ~${tempBat.toFixed(1)} °C`, tx + 10, ty + 80);
+            
+            ctx.fillStyle = '#A0A0A0'; ctx.font = 'italic 9px sans-serif';
+            ctx.fillText(`Protocolo: ${protocolo}`, tx + 10, ty + 95);
         }
 
         // restauramos las coordenadas originales del lienzo para no afectar a otros dibujos

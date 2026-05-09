@@ -1,0 +1,1018 @@
+% ============================================================
+%  ElectroLab-JS ? Artículo Científico
+%  Formato: IEEE / Artículo de conferencia académica
+%  Motor: pdfLaTeX  |  Codificación: UTF-8
+% ============================================================
+\documentclass[12pt, a4paper]{article}
+
+% ?? Paquetes base ????????????????????????????????????????????
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[provide=*,spanish]{babel}
+
+\usepackage[protrusion=true,expansion=false]{microtype}
+
+% ?? Geometría y márgenes ?????????????????????????????????????
+\usepackage[
+  top=2.5cm, bottom=2.5cm,
+  left=3.0cm, right=2.5cm,
+  headheight=14pt
+]{geometry}
+
+% ?? Gráficos y color ?????????????????????????????????????????
+\usepackage{graphicx}
+\usepackage[dvipsnames, table]{xcolor}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+
+% ?? Tablas ???????????????????????????????????????????????????
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{longtable}
+
+% ?? Matemáticas ??????????????????????????????????????????????
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{mathtools}
+\usepackage{bm}
+\usepackage{siunitx}
+\sisetup{group-separator={,}}
+
+% ?? Código fuente ????????????????????????????????????????????
+\usepackage{listings}
+\usepackage{lstautogobble}
+
+% ?? Cajas de resaltado ???????????????????????????????????????
+\usepackage{tcolorbox}
+\tcbuselibrary{breakable, skins, most}
+
+% ?? Encabezados, pies y secciones ????????????????????????????
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{titletoc}
+\usepackage{enumitem}
+\usepackage{parskip}
+
+% ?? Hipervínculos y referencias ??????????????????????????????
+\usepackage[
+  colorlinks=true,
+  linkcolor=NavyBlue,
+  citecolor=NavyBlue,
+  urlcolor=NavyBlue,
+  pdftitle={ElectroLab-JS: Simulador Interactivo de Electricidad y Magnetismo},
+  pdfauthor={[Tu Nombre Completo]},
+]{hyperref}
+\usepackage{cite}
+\usepackage{url}
+
+% ?? Marcadores de posición para figuras ??????????????????????
+\usepackage{tocloft}
+\usepackage{afterpage}
+
+% ============================================================
+%  COLORES PERSONALIZADOS
+% ============================================================
+\definecolor{azulprimario}{HTML}{1F3864}
+\definecolor{azulsecundario}{HTML}{2E75B6}
+\definecolor{verdecaja}{HTML}{1F4E39}
+\definecolor{verdebg}{HTML}{E2EFDA}
+\definecolor{verdeborde}{HTML}{70AD47}
+\definecolor{amarillocaja}{HTML}{5C4000}
+\definecolor{amarillobg}{HTML}{FFF2CC}
+\definecolor{amarilloborde}{HTML}{C9A800}
+\definecolor{griscode}{HTML}{F5F5F5}
+\definecolor{azulcod}{HTML}{1F3864}
+\definecolor{grisclaro}{HTML}{F0F4F8}
+
+% ============================================================
+%  CONFIGURACIÓN DE SECCIONES
+% ============================================================
+\titleformat{\section}
+  {\Large\bfseries\color{azulprimario}}
+  {\thesection.}{0.6em}{}
+  [\vspace{-0.3em}\textcolor{azulsecundario}{\rule{\linewidth}{1.5pt}}]
+
+\titleformat{\subsection}
+  {\large\bfseries\color{azulsecundario}}
+  {\thesubsection}{0.6em}{}
+
+\titleformat{\subsubsection}
+  {\normalsize\bfseries\color{black!70}}
+  {\thesubsubsection}{0.6em}{}
+
+\titlespacing*{\section}{0pt}{18pt}{8pt}
+\titlespacing*{\subsection}{0pt}{12pt}{5pt}
+\titlespacing*{\subsubsection}{0pt}{8pt}{3pt}
+
+% ============================================================
+%  CAJAS DE ENTORNO
+% ============================================================
+
+% Caja "Experiencia de clase"
+\newtcolorbox{cajaclas}[1][]{
+  enhanced, breakable,
+  colback=verdebg, colframe=verdeborde,
+  left=6pt, right=6pt, top=5pt, bottom=5pt,
+  fontupper=\small\itshape\color{verdecaja},
+  title={\small\textbf{Experiencia de laboratorio / clase}},
+  attach boxed title to top left={yshift=-2mm, xshift=4mm},
+  boxed title style={colback=verdeborde, colframe=verdeborde},
+  #1
+}
+
+% Caja "Nota histórica / dato curioso"
+\newtcolorbox{cajahist}[1][]{
+  enhanced, breakable,
+  colback=amarillobg, colframe=amarilloborde,
+  left=6pt, right=6pt, top=5pt, bottom=5pt,
+  fontupper=\small\itshape\color{amarillocaja},
+  borderline west={3pt}{0pt}{amarilloborde},
+  #1
+}
+
+% Caja de caso de uso
+\newtcolorbox{casodeuso}[2][]{
+  enhanced, breakable,
+  colback=grisclaro, colframe=azulsecundario,
+  left=8pt, right=8pt, top=6pt, bottom=6pt,
+  title={\textbf{ Caso de uso: #2}},
+  fonttitle=\normalsize\bfseries\color{white},
+  attach boxed title to top left={yshift=-2mm, xshift=4mm},
+  boxed title style={colback=azulsecundario},
+  #1
+}
+
+% ============================================================
+%  PLACEHOLDER DE FIGURA
+% ============================================================
+\newcommand{\figplaceholder}[2]{%
+  \begin{figure}[H]
+    \centering
+    \begin{tcolorbox}[
+      colback=white, colframe=gray!40,
+      width=0.9\linewidth,
+      halign=center, valign=center,
+      height=4.5cm,
+      enhanced, sharp corners,
+      borderline={0.5pt}{0pt}{gray!40, dashed}
+    ]
+      \centering
+      \textcolor{gray!60}{\Large } \\[4pt]
+      \textbf{\textcolor{gray!70}{#1}} \\[2pt]
+      \textit{\small\textcolor{gray!60}{#2}}
+    \end{tcolorbox}
+    \caption{#1}
+    \label{fig:#1}
+  \end{figure}%
+}
+
+% ============================================================
+%  LISTINGS (código JS)
+% ============================================================
+\lstdefinelanguage{JavaScript}{
+  keywords={const,let,var,function,return,if,else,for,while,class,
+             import,export,default,new,this,static,extends,typeof,
+             null,undefined,true,false,async,await},
+  keywordstyle=\color{azulsecundario}\bfseries,
+  ndkeywords={Math,Number,Array,Object,window,document,console},
+  ndkeywordstyle=\color{teal},
+  identifierstyle=\color{black},
+  sensitive=true,
+  comment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  commentstyle=\color{gray}\itshape,
+  stringstyle=\color{orange!80!black},
+  morestring=[b]",
+  morestring=[b]',
+  morestring=[b]`,
+}
+\lstset{
+  language=JavaScript,
+  backgroundcolor=\color{griscode},
+  basicstyle=\ttfamily\footnotesize,
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  stepnumber=1,
+  numbersep=8pt,
+  frame=single,
+  rulecolor=\color{gray!30},
+  breaklines=true,
+  breakatwhitespace=true,
+  captionpos=b,
+  autogobble=true,
+  xleftmargin=15pt,
+}
+
+% ============================================================
+%  ENCABEZADO Y PIE
+% ============================================================
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\textcolor{gray}{ElectroLab-JS --- Simulador de Electromagnetismo}}
+\fancyhead[R]{\small\textcolor{gray}{\nouppercase{\leftmark}}}
+\fancyfoot[C]{\small\textcolor{gray}{\thepage}}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+% ============================================================
+%  MACROS ÚTILES
+% ============================================================
+\newcommand{\V}{\,\si{\volt}}
+\newcommand{\A}{\,\si{\ampere}}
+\newcommand{\W}{\,\si{\watt}}
+\newcommand{\ohmunit}{\,\si{\ohm}}
+\newcommand{\F}{\,\si{\farad}}
+\newcommand{\T}{\,\si{\tesla}}
+\newcommand{\Req}{R_{\mathrm{eq}}}
+\newcommand{\Imax}{I_{\mathrm{max}}}
+\newcommand{\Pmax}{P_{\mathrm{max}}}
+\newcommand{\Vcrit}{V_{\mathrm{cr\acute{i}tico}}}
+\newcommand{\Rcrit}{R_{\mathrm{cr\acute{i}tica}}}
+\newcommand{\js}{\texttt{JavaScript}}
+\newcommand{\mvc}{\textsc{mvc}}
+
+% ============================================================
+%  DOCUMENTO
+% ============================================================
+\begin{document}
+
+% ?? Portada ??????????????????????????????????????????????????
+\begin{titlepage}
+  \centering
+  \vspace*{1.5cm}
+
+  {\Large\bfseries\color{azulprimario} UNIVERSIDAD TECNOLÓGICA NACIONAL}\\[0.3cm]
+  {\large\color{gray} Facultad de Ingeniería en Sistemas}\\[0.15cm]
+  {\normalsize\color{gray} Materia: Física para Ingeniería II}
+
+  \vspace{1.5cm}
+  \textcolor{azulsecundario}{\rule{\linewidth}{2pt}}\\[0.4cm]
+
+  {\Huge\bfseries\color{azulprimario} ElectroLab-JS}\\[0.4cm]
+  {\LARGE\bfseries\color{azulsecundario}
+    Simulador Interactivo de Electricidad\\[0.2cm] y Magnetismo}\\[0.4cm]
+
+  \textcolor{azulsecundario}{\rule{\linewidth}{2pt}}
+
+  \vspace{1.2cm}
+
+  \begin{tcolorbox}[
+    colback=grisclaro, colframe=azulsecundario,
+    width=0.7\linewidth, halign=center
+  ]
+    \centering
+    \small
+    \textbf{Alumno:} [Tu Nombre Completo]\\
+    \textbf{Matrícula:} [Número de Matrícula]\\[6pt]
+    \textbf{Docente:} Dr. [Nombre del Profesor]\\[6pt]
+    \textbf{Proyecto Final de Curso}\\
+    Abril, 2026
+  \end{tcolorbox}
+
+  \vfill
+  {\footnotesize\color{gray}
+    Tecnologías: HTML5 ? CSS3 ? JavaScript Vanilla ? Canvas API\\
+    Arquitectura: MVC ? ES6 Modules ? Principios SOLID
+  }
+\end{titlepage}
+
+% ?? Índice ???????????????????????????????????????????????????
+\tableofcontents
+\newpage
+
+% ?? Resumen ??????????????????????????????????????????????????
+\begin{abstract}
+\noindent
+El presente trabajo documenta el diseño, desarrollo e implementación de
+\textbf{ElectroLab-JS}, una aplicación web interactiva orientada a la
+enseñanza visual de conceptos fundamentales de electricidad y magnetismo a
+nivel universitario. El simulador cubre tres módulos: la Ley de Ohm con
+análisis de riesgo térmico, topologías de circuitos eléctricos (serie,
+paralelo y mixto) con simulación de fallas, y el electromagnetismo basado
+en la Fuerza de Lorentz aplicado a un motor de corriente continua. La
+herramienta fue construida con tecnologías web nativas ?HTML5, CSS3,
+\js{} Vanilla y Canvas API? sin dependencias externas, bajo el patrón
+\mvc{} y principios SOLID. Los conceptos simulados tienen sustento directo
+en las prácticas de laboratorio realizadas durante el semestre, incluyendo
+electrización por frotamiento, verificación experimental de la Ley de
+Coulomb y fabricación de capacitores artesanales. Los resultados
+demuestran que la representación visual animada de fenómenos físicos
+facilita la comprensión de conceptos abstractos como la resistencia
+equivalente, la distribución de corriente y la inducción electromagnética.
+
+\bigskip
+\noindent\textbf{Palabras clave:} Ley de Ohm, circuitos eléctricos,
+fuerza de Lorentz, capacitancia, electrización, simulación web, Canvas API,
+\js{}, educación en ingeniería.
+\end{abstract}
+
+% ============================================================
+\section{Introducción}
+% ============================================================
+
+\subsection{Planteamiento del problema}
+
+La física eléctrica es una de las materias con mayor índice de dificultad
+en carreras de ingeniería. La brecha entre la formulación matemática
+abstracta ---ecuaciones, vectores, campos--- y la intuición que el
+estudiante necesita para resolver problemas reales es una dificultad
+ampliamente documentada en la literatura pedagógica~\cite{serway2018,
+hayt2019}.
+
+Ver una fórmula escrita en el pizarrón es fundamentalmente diferente a
+\emph{ver} cómo los electrones se detienen completamente cuando un foco se
+funde en un circuito en serie, o cómo un cable se dobla hacia un imán
+cuando la corriente fluye. Las herramientas de simulación interactiva se
+presentan como una alternativa pedagógica accesible y eficaz ante las
+limitaciones del laboratorio físico: tiempo, equipo costoso y
+reproducibilidad.
+
+\subsection{Justificación}
+
+La decisión de construir un simulador propio responde a tres razones
+concretas. Primero, la oportunidad de implementar directamente las fórmulas
+estudiadas en clase, verificando su comprensión real. Segundo, la
+posibilidad de diseñar animaciones y metáforas visuales en torno a los
+ejemplos vistos en el semestre. Tercero, el valor adicional de aprender
+simultáneamente arquitectura de software, patrones de diseño y física
+computacional.
+
+\subsection{Objetivos}
+
+\textbf{General:} Diseñar e implementar una aplicación web interactiva que
+permita simular y visualizar en tiempo real los principios fundamentales de
+la Ley de Ohm, las topologías de circuitos y el electromagnetismo.
+
+\textbf{Específicos:}
+\begin{itemize}[leftmargin=1.4em]
+  \item Modelar la Ley de Ohm e implementar análisis de riesgo térmico.
+  \item Calcular $\Req$ para circuitos serie, paralelo y mixto, con
+        simulación de fallas.
+  \item Ilustrar la Fuerza de Lorentz con física de simulación (Verlet) y
+        su aplicación en un motor DC.
+  \item Integrar los conceptos de las prácticas del semestre como marco
+        conceptual del simulador.
+  \item Aplicar el patrón \mvc{} y principios SOLID.
+\end{itemize}
+
+% ============================================================
+\section{Marco teórico}
+% ============================================================
+
+\subsection{Electrización y carga eléctrica}
+
+\subsubsection{Historia y contexto}
+
+El estudio sistemático de la electricidad comenzó con William Gilbert en
+1600. La distinción entre dos tipos de carga fue establecida por Charles
+Fran?ois du Fay en 1733, y fue Benjamin Franklin quien estableció la
+convención de carga positiva y negativa aún vigente~\cite{griffiths2017}.
+
+\begin{cajaclas}
+En el laboratorio se realizó la práctica de electrización por frotamiento
+con materiales como acrílico, PVC, vidrio y cobre, frotados con paños de
+poliéster, franela, peluche y hule espuma. Se registró atracción o
+repulsión según el tipo de carga transferida, usando un sensor de rotación
+Vernier conectado a un LabQuest para cuantificar la interacción.
+\end{cajaclas}
+
+\figplaceholder{Práctica 1 --- Electrización por frotamiento}
+{Inserta aquí la fotografía del montaje experimental con los materiales y el sensor Vernier.}
+
+\subsubsection{Ley de Coulomb}
+
+En 1785, Charles-Augustin de Coulomb cuantificó la fuerza entre cargas
+eléctricas puntuales:
+
+\begin{equation}
+  F = k \frac{q_1\, q_2}{r^2}, \qquad
+  k = \SI{8.99e9}{\newton\metre\squared\per\coulomb\squared}
+  \label{eq:coulomb}
+\end{equation}
+
+La relación inversa al cuadrado es compartida con la gravitación
+newtoniana, reflejando una simetría profunda en las fuerzas de largo
+alcance de la naturaleza.
+
+\begin{cajaclas}
+Se verificó experimentalmente la Ley de Coulomb midiendo la fuerza de
+repulsión entre dos barras de acrílico cargadas a distintas distancias. El
+ajuste logarítmico de la gráfica $F$ vs. $r$ arrojó una pendiente $\approx
+-2$, confirmando $F \propto 1/r^2$ conforme predice la
+ecuación~\eqref{eq:coulomb}.
+\end{cajaclas}
+
+\figplaceholder{Práctica 1 --- Gráfica F vs. r (Ley de Coulomb)}
+{Inserta aquí la gráfica obtenida del LabQuest con el ajuste logarítmico.}
+
+\subsection{Capacitores y almacenamiento de energía eléctrica}
+
+La capacitancia $C$ cuantifica la capacidad de almacenamiento de carga de
+un dispositivo a un dado voltaje:
+
+\begin{equation}
+  C = \frac{Q}{V}
+  \label{eq:cap_def}
+\end{equation}
+
+Para un capacitor de placas paralelas con dieléctrico:
+
+\begin{equation}
+  C = \frac{\kappa \,\varepsilon_0\, A}{d}, \qquad
+  \varepsilon_0 = \SI{8.85e-12}{\farad\per\metre}
+  \label{eq:cap_placas}
+\end{equation}
+
+donde $\kappa$ es la constante dieléctrica, $A$ el área de las placas y
+$d$ su separación. La energía almacenada es:
+
+\begin{equation}
+  E = \frac{1}{2}CV^2
+  \label{eq:energia_cap}
+\end{equation}
+
+\begin{cajaclas}
+Se fabricaron capacitores electrolíticos artesanales con placas de aluminio
+y soluciones de borax y bicarbonato de sodio. Al aplicar \SI{12}{\V} al
+ánodo de aluminio, se formó una capa de Al$_2$O$_3$ nanométrica que actúa
+como dieléctrico. La capacitancia obtenida con borax fue
+$C \approx \SI{10}{\micro\farad}$.
+\end{cajaclas}
+
+\figplaceholder{Práctica 2 --- Capacitor electrolítico artesanal}
+{Inserta aquí la foto del vaso de precipitados con las placas de aluminio, la fuente y el multímetro en modo capacímetro.}
+
+\subsection{Ley de Ohm y potencia eléctrica}
+
+\subsubsection{Georg Simon Ohm (1789--1854)}
+
+Georg Simon Ohm era maestro de secundaria cuando publicó en 1827 \emph{Die
+galvanische Kette, mathematisch bearbeitet}, donde estableció la ley que
+lleva su nombre~\cite{ohm1827}. Su trabajo fue inicialmente ridiculizado en
+Alemania; no fue reconocido hasta que la Royal Society de Londres le
+otorgó la Medalla Copley en 1841.
+
+\begin{cajahist}
+\textbf{Dato histórico:} Ohm usó termopares en lugar de pilas químicas
+porque ofrecían un voltaje más estable. Esta precisión experimental fue
+clave para obtener resultados reproducibles.
+\end{cajahist}
+
+\subsubsection{La ley}
+
+Para un conductor óhmico a temperatura constante:
+
+\begin{equation}
+  I = \frac{V}{R}
+  \label{eq:ohm}
+\end{equation}
+
+La resistencia de un conductor depende de sus propiedades geométricas y
+del material:
+
+\begin{equation}
+  R = \rho \frac{L}{A}
+  \label{eq:resistividad}
+\end{equation}
+
+\subsubsection{Potencia y Efecto Joule}
+
+James Prescott Joule (1818--1889) estableció en 1841 la equivalencia entre
+corriente eléctrica y calor. La potencia disipada adopta tres formas
+equivalentes:
+
+\begin{equation}
+  P = VI = I^2 R = \frac{V^2}{R}
+  \label{eq:potencia}
+\end{equation}
+
+De \eqref{eq:potencia} se extraen los umbrales críticos de operación segura:
+
+\begin{align}
+  \Vcrit &= \sqrt{P_{\max} \cdot R}  \label{eq:vcrit} \\
+  \Rcrit &= \frac{V^2}{P_{\max}}     \label{eq:rcrit}
+\end{align}
+
+Estos valores se muestran en tiempo real en el panel de predicción del
+simulador.
+
+\begin{cajaclas}
+El ejemplo del profesor con distintos valores de resistencia conectados a
+una fuente variable demostró que duplicar el voltaje \emph{cuadruplica} la
+potencia disipada (ecuación~\eqref{eq:potencia}). Esta relación cuadrática,
+contraintuitiva para el estudiante, motivó que el slider de voltaje del
+simulador esté directamente vinculado a la velocidad de los electrones y al
+brillo de la resistencia de manera no lineal.
+\end{cajaclas}
+
+\subsection{Circuitos eléctricos}
+
+\subsubsection{Kirchhoff y la teoría de circuitos}
+
+Gustav Kirchhoff (1824--1887) formuló en 1845, con 21 años, las dos leyes
+que sustentan el análisis de cualquier circuito de corriente continua:
+
+\begin{itemize}
+  \item \textbf{Primera ley (Nodos):} $\sum I_{\mathrm{entrada}} = \sum I_{\mathrm{salida}}$ \quad (conservación de carga)
+  \item \textbf{Segunda ley (Mallas):} $\sum V_k = 0$ \quad (conservación de energía)
+\end{itemize}
+
+\subsubsection{Circuito en serie}
+
+\begin{equation}
+  \Req^{\mathrm{serie}} = \sum_{i=1}^{n} R_i, \qquad
+  I_1 = I_2 = \cdots = I_n = I
+  \label{eq:serie}
+\end{equation}
+
+La interrupción de cualquier nodo corta el flujo en toda la red:
+$R_{\mathrm{falla}} \to \infty \Rightarrow \Req \to \infty \Rightarrow I = 0$.
+
+\subsubsection{Circuito en paralelo}
+
+\begin{equation}
+  \frac{1}{\Req^{\mathrm{par}}} = \sum_{i=1}^{n} \frac{1}{R_i}, \qquad
+  \Req < R_{\min}
+  \label{eq:paralelo}
+\end{equation}
+
+Cada rama recibe el voltaje completo; la corriente total aumenta con cada
+rama adicional.
+
+\subsubsection{Circuito mixto --- algoritmo implementado}
+
+El motor matemático recorre la secuencia de componentes de derecha a
+izquierda acumulando $\Req$:
+
+\begin{lstlisting}[caption={Nucleo del algoritmo de Req mixto (ModeloCircuitos.js)},
+                   label={lst:req_mixto}]
+for (let i = secuencia.length - 1; i >= 0; i--) {
+    const tipo = secuencia[i];
+    const r    = resEfectivas[i];
+
+    if (tipo === 'S_top' || tipo === 'S_bot') {
+        r_acc += r;                          // Serie: suma directa
+    } else if (tipo === 'P') {
+        if (r_acc === Infinity) r_acc = r;
+        else r_acc = (r_acc * r) / (r_acc + r); // Paralelo: combinacion
+    }
+}
+\end{lstlisting}
+
+El tratamiento del foco fundido es elegante: asignar $R = \infty$ al
+componente fallido hace que \texttt{JavaScript} propague correctamente
+$\infty + k = \infty$ (bloquea serie) y $1/\infty = 0$ (elimina la rama
+paralela).
+
+\begin{cajaclas}
+El ejemplo del profesor con una batería, tres focos en serie y un
+interruptor que simulaba el fundido de un filamento fue el momento que
+motivó que la simulación de fallas sea el elemento central del módulo de
+circuitos. Al ver que apagar uno apagaba todos, y que en paralelo solo se
+apagaba la habitación afectada, el concepto quedó grabado visualmente.
+\end{cajaclas}
+
+\subsection{Electromagnetismo y Fuerza de Lorentz}
+
+\subsubsection{Historia: de Oersted a Maxwell}
+
+El 21 de abril de 1820, Hans Christian Oersted descubrió durante una clase
+que una corriente eléctrica desvía una aguja de brújula, naciendo así el
+electromagnetismo. Ampère formalizó la relación matemáticamente; Faraday
+descubrió la inducción en 1831; Maxwell la unificó todo en cuatro
+ecuaciones diferenciales entre 1861 y 1865.
+
+\begin{cajahist}
+Hendrik Lorentz (1853--1928) fue el primer físico en recibir el Premio
+Nobel de Física (1902, compartido con Pieter Zeeman). Su expresión de la
+fuerza sobre una carga en movimiento unificó los efectos eléctrico y
+magnético en una sola ecuación vectorial.
+\end{cajahist}
+
+\subsubsection{Fuerza de Lorentz}
+
+Para una carga $q$ con velocidad $\mathbf{v}$ en campos $\mathbf{E}$ y
+$\mathbf{B}$:
+
+\begin{equation}
+  \mathbf{F} = q(\mathbf{E} + \mathbf{v} \times \mathbf{B})
+  \label{eq:lorentz_completa}
+\end{equation}
+
+Para un conductor de longitud efectiva $L$ con corriente $I$:
+
+\begin{equation}
+  \mathbf{F} = I\,\mathbf{L} \times \mathbf{B}, \qquad
+  |\mathbf{F}| = I\,L\,B\,\sin\theta
+  \label{eq:lorentz_cable}
+\end{equation}
+
+\subsubsection{Campo magnético generado por corriente (Ampère)}
+
+\begin{equation}
+  B = \frac{\mu_0\, I}{2\pi r}, \qquad
+  \mu_0 = 4\pi \times 10^{-7} \;\si{\tesla\metre\per\ampere}
+  \label{eq:ampere}
+\end{equation}
+
+\begin{cajaclas}
+El experimento del profesor fue el detonador del módulo de magnetismo: al
+pasar corriente por un cable flexible y acercar un imán de neodimio, el
+cable se desplazaba visiblemente. Al invertir la corriente o girar el imán,
+la fuerza se invertía. Sin corriente, el cable no respondía. El módulo de
+magnetismo del simulador reproduce exactamente este experimento con
+interacción de arrastre del imán.
+\end{cajaclas}
+
+\figplaceholder{Demostración de la Fuerza de Lorentz}
+{Inserta aquí la foto del experimento del profesor: cable flexible, fuente de corriente e imán de neodimio.}
+
+\subsubsection{Integración de Verlet para la simulación del cable}
+
+El cable se modela como una cadena de $N = 20$ nodos con restricciones de
+distancia. La posición de cada nodo libre se actualiza con el integrador de
+Verlet~\cite{verlet1967}:
+
+\begin{equation}
+  x_{n+1} = 2x_n - x_{n-1} + a \cdot \Delta t^2
+  \label{eq:verlet}
+\end{equation}
+
+donde $a = F_{\mathrm{Lorentz}} / m$ y un factor de amortiguación de $0.95$
+por paso previene oscilaciones divergentes. Este método conserva mejor la
+energía que la integración de Euler simple, produciendo movimientos
+visualmente más naturales.
+
+% ============================================================
+\section{Casos de uso en física}
+% ============================================================
+
+Los siguientes casos de uso describen escenarios reales donde los
+principios del semestre tienen aplicación directa y medible.
+
+\subsection{Caso 1: Instalación eléctrica doméstica}
+
+\begin{casodeuso}{Instalación eléctrica doméstica}
+\textbf{Concepto:} Ley de Ohm + Circuitos en paralelo.\\[4pt]
+\textbf{Descripción:} En una vivienda todos los circuitos se conectan en
+paralelo respecto a la línea de \SI{127}{\V}. Cada dispositivo opera
+independientemente, recibiendo el voltaje nominal completo.\\[4pt]
+\textbf{Ejemplo numérico:}
+\begin{itemize}
+  \item Foco LED \SI{60}{\W}: $R = V^2/P = 127^2/60 = \SI{268.8}{\ohm}$, $I = \SI{0.47}{\A}$
+  \item Televisor \SI{120}{\W}: $I = \SI{0.94}{\A}$
+  \item Cafetera \SI{900}{\W}: $I = \SI{7.09}{\A}$
+  \item $I_{\mathrm{total}} = \SI{8.50}{\A}$ (seguro, $< \SI{15}{\A}$)
+  \item Plancha adicional \SI{1500}{\W}: $I_{\mathrm{plancha}} = \SI{11.81}{\A}$ $\Rightarrow$ $I_{\mathrm{total}} = \SI{20.31}{\A} > \SI{15}{\A}$ $\Rightarrow$ \textbf{breaker dispara}
+\end{itemize}
+\textbf{Importancia:} Dimensionamiento correcto de cables y protecciones para prevenir incendios.
+\end{casodeuso}
+
+\vspace{4pt}
+\begin{table}[H]
+\centering\small
+\caption{Resumen --- Caso de uso 1}
+\begin{tabularx}{0.85\linewidth}{>{\bfseries}lX}
+\toprule
+Campo & Contenido \\ \midrule
+Nombre       & Instalación eléctrica doméstica \\
+Concepto     & Ley de Ohm + Circuitos en paralelo \\
+Contexto     & Viviendas, oficinas, instalaciones comerciales \\
+Aplicación   & Dimensionamiento de cables y protecciones \\
+Fórmula clave & $I_{\mathrm{total}} = V/\Req$,\;\; $1/\Req = \sum 1/R_i$ \\
+Impacto      & Prevención de incendios por sobrecalentamiento de cables \\ \bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Caso 2: Carga de smartphones y Efecto Joule}
+
+\begin{casodeuso}{Carga segura de smartphones}
+\textbf{Concepto:} Ley de Ohm + Potencia cuadrática + Efecto Joule.\\[4pt]
+\textbf{Descripción:} Un cargador genérico de alto voltaje puede destruir
+el PMIC del teléfono porque la potencia disipada crece con el cuadrado del
+voltaje.\\[4pt]
+\textbf{Ejemplo numérico (iPhone 5, $V_{\max} = \SI{5}{\V}$):}
+\begin{itemize}
+  \item Cargador correcto (\SI{5}{\V}): $P_1 = 25/10 = \SI{2.5}{\W}$
+  \item Cargador incorrecto (\SI{9}{\V}): $P_2 = 81/10 = \SI{8.1}{\W} = 3.24\times P_1$
+\end{itemize}
+\textbf{Importancia:} Base del protocolo USB-PD que negocia el voltaje
+dinámicamente para proteger el dispositivo.
+\end{casodeuso}
+
+\vspace{4pt}
+\begin{table}[H]
+\centering\small
+\caption{Resumen --- Caso de uso 2}
+\begin{tabularx}{0.85\linewidth}{>{\bfseries}lX}
+\toprule
+Campo & Contenido \\ \midrule
+Nombre       & Carga segura de smartphones \\
+Concepto     & Efecto Joule, potencia eléctrica, Ley de Ohm \\
+Contexto     & Electrónica de consumo, cargadores USB \\
+Aplicación   & Compatibilidad de cargadores, protocolo USB-PD \\
+Fórmula clave & $P = V^2/R$ \;\;(cuadrática en $V$) \\
+Impacto      & Protección de dispositivos y diseño de estándares de carga \\ \bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Caso 3: Foco fundido --- serie vs. paralelo}
+
+\begin{casodeuso}{Foco fundido: serie vs. paralelo (6 focos, $R = \SI{240}{\ohm}$, $V = \SI{120}{\V}$)}
+\textbf{En serie:}
+$\Req = 6 \times 240 = \SI{1440}{\ohm}$,\; $I = \SI{0.083}{\A}$.
+Foco fundido: $\Req \to \infty$,\; $I = 0$. Toda la casa se apaga.\\[4pt]
+\textbf{En paralelo:}
+$\Req = 240/6 = \SI{40}{\ohm}$,\; $I_{\mathrm{total}} = \SI{3}{\A}$.
+Foco fundido: $\Req = 240/5 = \SI{48}{\ohm}$,\; $I_{\mathrm{total}} = \SI{2.5}{\A}$.
+Solo esa rama se apaga.\\[4pt]
+\textbf{Importancia:} Explica por qué la instalación doméstica moderna usa
+exclusivamente topología en paralelo, y por qué las luces LED navideñas no
+se apagan todas al fundirse una.
+\end{casodeuso}
+
+\subsection{Caso 4: Electrización y Ley de Coulomb en materiales}
+
+\begin{casodeuso}{Electrización y Ley de Coulomb (Práctica de laboratorio)}
+\textbf{Concepto:} Carga eléctrica + Serie triboeléctrica + $F = kq_1q_2/r^2$.\\[4pt]
+\textbf{Datos experimentales:}
+\begin{itemize}
+  \item Material: barra de acrílico frotada con poliéster.
+  \item A $r_2 = 2r_1$: $F_2 \approx F_1/4$ (verificado con sensor Vernier).
+  \item Ajuste logarítmico: pendiente $\approx -2$, confirmando $F \propto 1/r^2$.
+\end{itemize}
+\textbf{Impacto:} Base de precipitadores electrostáticos, pintado
+electrostático e impresoras láser.
+\end{casodeuso}
+
+\subsection{Caso 5: Capacitor electrolítico --- flash de cámara}
+
+\begin{casodeuso}{Almacenamiento de energía en capacitor (Práctica de laboratorio)}
+\textbf{Concepto:} $C = \kappa\varepsilon_0 A/d$,\; $E = \tfrac{1}{2}CV^2$.\\[4pt]
+\textbf{Flash de cámara:} $C = \SI{1000}{\micro\farad}$, $V = \SI{300}{\V}$
+$\Rightarrow E = \SI{45}{\joule}$.
+Descarga en $\SI{1}{\milli\second}$ $\Rightarrow P_{\mathrm{pico}} = \SI{45}{\kilo\watt}$.\\[4pt]
+\textbf{Capacitor artesanal (borax):} $C \approx \SI{10}{\micro\farad}$, $V = \SI{12}{\V}$
+$\Rightarrow E = \SI{720}{\micro\joule}$.\\[4pt]
+\textbf{Impacto:} La práctica conecta directamente la ecuación
+\eqref{eq:cap_placas} con la experiencia de ver crecer la capa de óxido y
+medir $C$ con el multímetro.
+\end{casodeuso}
+
+\subsection{Caso 6: Motor DC en sistemas de bombeo industrial}
+
+\begin{casodeuso}{Motor DC en bomba de agua}
+\textbf{Concepto:} $F = IL \times B$,\; $\omega \propto K_v V$,\; calentamiento por Joule.\\[4pt]
+\textbf{Parámetros del motor simulado:}
+$K_v = \SI{60}{RPM\per\volt}$,\; $R_{\mathrm{int}} = \SI{1.5}{\ohm}$,\;
+$T_{\mathrm{cr}} = \SI{130}{\celsius}$.\\[4pt]
+\textbf{Sobrevoltaje a \SI{55}{\V}:} exceso $= 55 - 48 = \SI{7}{\V}$;
+calentamiento $\propto 7^2 = 49$ veces más rápido que en operación
+marginal. Tiempo estimado hasta falla: $< \SI{30}{\second}$.\\[4pt]
+\textbf{Impacto:} Base del diseño de protecciones térmicas y controladores
+PWM en industria y electromovilidad.
+\end{casodeuso}
+
+\subsection{Caso 7: Cable en campo magnético (experimento de clase)}
+
+\begin{casodeuso}{Cable en campo magnético externo}
+\textbf{Concepto:} $F = I\,L\,B\,\sin\theta$,\; Regla de la Mano Derecha.\\[4pt]
+\textbf{Estimación experimental:}
+$I = \SI{5}{\A}$,\; $L = \SI{0.10}{\metre}$,\; $B \approx \SI{0.05}{\tesla}$ (imán neodimio a \SI{2}{\centi\metre})
+$\Rightarrow F = \SI{25}{\milli\newton}$ (suficiente para deflexión visible).\\[4pt]
+Al duplicar $I \to \SI{10}{\A}$: $F \to \SI{50}{\milli\newton}$, desplazamiento duplicado.\\[4pt]
+\textbf{Impacto:} Fundamento de altavoces, galvanómetros, actuadores
+electromagnéticos y todos los motores eléctricos.
+\end{casodeuso}
+
+% ============================================================
+\section{Proceso de diseño y desarrollo}
+% ============================================================
+
+\subsection{Decisiones tecnológicas}
+
+\subsubsection{JavaScript Vanilla sin frameworks}
+
+La elección de \js{} Vanilla responde a tres criterios:
+
+\begin{enumerate}
+  \item \textbf{Accesibilidad universal:} funciona en cualquier navegador
+        sin instalación ni proceso de compilación.
+  \item \textbf{Transparencia matemática:} sin capas de abstracción, la
+        línea \texttt{this.resultados.req = resEfectivas.reduce((a,b) =>
+        a+b, 0)} \emph{es} literalmente el cálculo de $\Req$ en serie.
+  \item \textbf{Rendimiento nativo:} redibujo de 80 partículas a 60 fps
+        sin overhead de estado reactivo.
+\end{enumerate}
+
+\subsubsection{Canvas API vs. SVG y WebGL}
+
+Canvas API fue elegido sobre SVG por rendimiento: SVG mantiene un árbol
+DOM que se degrada con muchos elementos animados. WebGL ofrece mayor
+rendimiento pero con complejidad desproporcionada al objetivo pedagógico.
+
+\subsubsection{Integración de Verlet vs. Euler}
+
+El método de Euler acumula error en cada paso, produciendo oscilaciones
+crecientes en sistemas con fuerzas restauradoras. Verlet deriva la
+velocidad implícitamente de la diferencia de posiciones
+(ecuación~\eqref{eq:verlet}), conservando mejor la energía con el mismo
+costo computacional~\cite{verlet1967}.
+
+\subsection{Arquitectura MVC}
+
+\begin{table}[H]
+\centering\small
+\caption{Distribución de responsabilidades por capa MVC}
+\begin{tabularx}{\linewidth}{>{\bfseries}llX}
+\toprule
+Capa & Clase principal & Responsabilidad \\ \midrule
+Modelo      & \texttt{ModeloOhm}, \texttt{ModeloCircuitos}  & Estado, cálculos físicos, notificaciones \\
+Vista       & \texttt{VistaOhm}, \texttt{VistaCircuitos}    & HTML dinámico, referencias DOM, Canvas \\
+Controlador & \texttt{ControladorOhm}, \texttt{ControladorCircuitos} & Eventos, bucle animación, ciclo de vida \\
+Compartido  & \texttt{RenderizadorBase}, \texttt{AnimadorElectrones} & Componentes reutilizables entre módulos \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+La comunicación Modelo $\leftrightarrow$ Vista ocurre mediante un observador
+simple: \texttt{modelo.alActualizar = () => \{ vista.actualizarUI(modelo) \}}.
+El bucle \texttt{requestAnimationFrame} vive en el Controlador y se cancela al
+cambiar de módulo, evitando fugas de memoria.
+
+\subsection{Bocetos y proceso iterativo}
+
+\figplaceholder{Mockup 1 --- Módulo de Ley de Ohm}
+{Inserta aquí el boceto inicial con la disposición del canvas, controles y panel de predicción.}
+
+\figplaceholder{Mockup 2 --- Módulo de Circuitos}
+{Inserta aquí el boceto del diagrama técnico y la transición al mundo real.}
+
+\figplaceholder{Mockup 3 --- Módulo de Magnetismo}
+{Inserta aquí el boceto del laboratorio de Lorentz y del motor DC.}
+
+% ============================================================
+\section{Resultados --- el simulador}
+% ============================================================
+
+\subsection{Módulo 1: Ley de Ohm}
+
+El módulo implementa un circuito con una fuente de voltaje y una
+resistencia, con electrones animados a velocidad proporcional a $I =
+V/R$. El panel de predicción muestra $\Vcrit$ y $\Rcrit$ en tiempo real
+(ecuaciones~\eqref{eq:vcrit} y \eqref{eq:rcrit}).
+
+\figplaceholder{Captura 1 --- Módulo Ley de Ohm, estado normal}
+{Electrones cian fluyendo, resistencia beige, panel de predicción visible.}
+
+\figplaceholder{Captura 2 --- Estado crítico y quemado}
+{Cable naranja brillante / resistencia rota con chispas.}
+
+\figplaceholder{Captura 3 --- Modo carga de celulares}
+{Teléfono cargando y teléfono dañado por exceso de voltaje.}
+
+\subsection{Módulo 2: Circuitos}
+
+\figplaceholder{Captura 4 --- Circuito en paralelo (diagrama técnico)}
+{5 ramas en paralelo con electrones distribuyéndose y valores de Req e I.}
+
+\figplaceholder{Captura 5 --- Mundo Real, foco fundido en serie}
+{Todos los focos apagados; solo el fundido muestra la X roja.}
+
+\figplaceholder{Captura 6 --- Mundo Real, foco fundido en paralelo}
+{Solo una habitación apagada; el resto iluminado con normalidad.}
+
+\subsection{Módulo 3: Magnetismo}
+
+\figplaceholder{Captura 7 --- Laboratorio de Lorentz}
+{Cable deflectado, líneas de campo animadas y vectores de fuerza verdes.}
+
+\figplaceholder{Captura 8 --- Motor DC, operación normal y sobrevoltaje}
+{Agua cayendo de la regadera vs. motor rojo con temperatura crítica.}
+
+\figplaceholder{Captura 9 --- Vista zoom interior del motor}
+{Rotor con bobinas brillando, imanes del estátor y conmutador central.}
+
+\subsection{Verificación matemática}
+
+\begin{table}[H]
+\centering\small
+\caption{Verificación de resultados del simulador contra valores teóricos}
+\begin{tabular}{llll}
+\toprule
+Caso de prueba & {Valor teórico} & {Valor simulado} & Error \\
+\midrule
+$V=12\V,\,R=\SI{100}{\ohm} \to I$           & 0.12\,A  & 0.12\,A  & 0.00\% \\
+$V=12\V,\,R=\SI{100}{\ohm} \to P$           & 1.44\,W  & 1.44\,W  & 0.00\% \\
+$\Vcrit$ ($R=\SI{100}{\ohm},\,\Pmax=50\W$)  & 70.71\,V & 70.71\,V & 0.00\% \\
+$\Req$: 3?\SI{240}{\ohm}\ en serie          & \SI{720}{\ohm} & \SI{720}{\ohm} & 0.00\% \\
+$\Req$: 3?\SI{240}{\ohm}\ en paralelo       & \SI{80}{\ohm}  & \SI{80}{\ohm}  & 0.00\% \\
+$I$ a 120\V\ con $\Req=\SI{80}{\ohm}$       & 1.50\,A  & 1.50\,A  & 0.00\% \\
+Foco fundido en serie ($R_{eq}\to\infty$) & $I=0\,\si{\ampere}$ & $I=0\,\si{\ampere}$ & Correcto \\
+Foco fundido en paralelo (5/6) & $I{-}17\,\%$ & $I{-}17\,\%$ & Correcto \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ============================================================
+\section{Conclusiones}
+% ============================================================
+
+El desarrollo de ElectroLab-JS fue simultáneamente un ejercicio de
+comprensión física y de ingeniería de software. Implementar las fórmulas
+de la Ley de Ohm, la resistencia equivalente de circuitos mixtos y la
+física de Verlet para el cable electromagnético requirió entenderlas a un
+nivel que va más allá de memorizarlas: fue necesario razonar sobre casos
+límite ($R = 0$, $R = \infty$), sobre el comportamiento numérico de las
+ecuaciones y sobre cómo traducir conceptos continuos en algoritmos
+discretos que se ejecutan 60 veces por segundo.
+
+La conexión con las prácticas del semestre resultó el elemento más valioso
+del diseño pedagógico. Haber observado físicamente la deflexión del cable
+ante el imán hizo que diseñar la simulación de la Fuerza de Lorentz fuera
+una traducción directa de la experiencia al código. De igual manera,
+fabricar un capacitor artesanal hizo tangibles los parámetros de la
+ecuación~\eqref{eq:cap_placas}.
+
+El valor educativo del simulador tiene una dimensión no prevista: fundir
+un foco en serie y ver que toda la casa se apaga entrega una consecuencia
+que en la vida real tomaría horas de trabajo eléctrico reproducir.
+
+Como trabajo futuro se identifican tres extensiones de alto valor
+pedagógico: circuitos de corriente alterna con representación fasorial,
+un módulo de electrostática con visualización de campo eléctrico, y la
+incorporación del módulo de capacitores como extensión natural del
+laboratorio del semestre.
+
+% ============================================================
+%  REFERENCIAS
+% ============================================================
+\begin{thebibliography}{99}
+
+\bibitem{serway2018}
+R.~A. Serway y J.~W. Jewett,
+\textit{Physics for Scientists and Engineers}, 10th~ed.
+Cengage Learning, 2018.
+
+\bibitem{hayt2019}
+W.~H. Hayt, J.~E. Kemmerly y S.~M. Durbin,
+\textit{Engineering Circuit Analysis}, 9th~ed.
+McGraw-Hill Education, 2019.
+
+\bibitem{nilsson2020}
+J.~W. Nilsson y S.~A. Riedel,
+\textit{Electric Circuits}, 11th~ed.
+Pearson, 2020.
+
+\bibitem{griffiths2017}
+D.~J. Griffiths,
+\textit{Introduction to Electrodynamics}, 4th~ed.
+Cambridge University Press, 2017.
+
+\bibitem{martin2017}
+R.~C. Martin,
+\textit{Clean Architecture: A Craftsman's Guide to Software Structure and Design}.
+Prentice Hall, 2017.
+
+\bibitem{gamma1994}
+E.~Gamma, R.~Helm, R.~Johnson y J.~Vlissides,
+\textit{Design Patterns: Elements of Reusable Object-Oriented Software}.
+Addison-Wesley, 1994.
+
+\bibitem{verlet1967}
+L.~Verlet,
+``Computer experiments on classical fluids. I. Thermodynamical properties of Lennard-Jones molecules,''
+\textit{Physical Review}, vol.~159, no.~1, pp.~98--103, 1967.
+
+\bibitem{mdn_canvas}
+MDN Web Docs,
+``Canvas API,''
+Mozilla Developer Network, 2024.
+[En línea]. Disponible: \url{https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API}
+
+\bibitem{usb_pd}
+USB Implementers Forum,
+\textit{USB Power Delivery Specification Revision 3.1}.
+USB-IF, 2021.
+
+\bibitem{nom001}
+Secretaría de Energía,
+\textit{Norma Oficial Mexicana NOM-001-SEDE-2012, Instalaciones Eléctricas (utilización)}.
+México, 2012.
+
+\bibitem{ohm1827}
+G.~S. Ohm,
+\textit{Die galvanische Kette, mathematisch bearbeitet}.
+T.~H. Riemann, Berlín, 1827.
+
+\bibitem{iie2019}
+Instituto de Investigaciones Eléctricas,
+\textit{Guía Técnica de Instalaciones Eléctricas Residenciales}.
+IIE, Cuernavaca, México, 2019.
+
+\end{thebibliography}
+
+\end{document}

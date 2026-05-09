@@ -39,79 +39,30 @@ export class RenderizadorMundoReal {
         const yBreaker = h * 0.50; 
         const yTechoArriba = pos[0].y - 40;
         const yTechoAbajo = pos[3].y - 40;
-        const xTroncal = pos[2].x + 30; // el troncal bajara justo despues del ultimo foco derecho
+        const yL_Arriba = yTechoArriba;
+        const yN_Arriba = yTechoArriba + 8;
+        const yL_Abajo = yTechoAbajo + 8;
+        const yN_Abajo = yTechoAbajo;
+        const xTroncalL = pos[2].x + 30;
+        const xTroncalN = pos[2].x + 22;
 
         // empezamos a trazar todo el cableado basandonos en la topologia elegida
         ctx.beginPath();
         if (modelo.topologia === 'serie') {
-            // para el circuito en serie, ruteamos un solo cable que pasa por todos los focos secuencialmente
-            ctx.moveTo(xBreaker, yBreaker);
-            ctx.lineTo(xBreaker, yTechoArriba);
-            // conectamos la linea superior pasando por los primeros 3 focos
-            ctx.lineTo(pos[0].x, yTechoArriba); ctx.lineTo(pos[0].x, pos[0].y - 15); ctx.moveTo(pos[0].x, yTechoArriba);
-            ctx.lineTo(pos[1].x, yTechoArriba); ctx.lineTo(pos[1].x, pos[1].y - 15); ctx.moveTo(pos[1].x, yTechoArriba);
-            ctx.lineTo(pos[2].x, yTechoArriba); ctx.lineTo(pos[2].x, pos[2].y - 15); ctx.moveTo(pos[2].x, yTechoArriba);
-            // bajamos el cable principal
-            ctx.lineTo(xTroncal, yTechoArriba); ctx.lineTo(xTroncal, yTechoAbajo);
-            // regresamos la conexion pasando por los focos inferiores
-            ctx.lineTo(pos[5].x, yTechoAbajo); ctx.lineTo(pos[5].x, pos[5].y - 15); ctx.moveTo(pos[5].x, yTechoAbajo);
-            ctx.lineTo(pos[4].x, yTechoAbajo); ctx.lineTo(pos[4].x, pos[4].y - 15); ctx.moveTo(pos[4].x, yTechoAbajo);
-            ctx.lineTo(pos[3].x, yTechoAbajo); ctx.lineTo(pos[3].x, pos[3].y - 15); ctx.moveTo(pos[3].x, yTechoAbajo);
-            ctx.lineTo(xBreaker + 15, yTechoAbajo); ctx.lineTo(xBreaker + 15, yBreaker);
-
+            const rutas = this.obtenerRutaSerie(pos, xBreaker, yBreaker, yTechoArriba, yTechoAbajo, xTroncalL);
+            this.trazarRutas(ctx, rutas);
         } else if (modelo.topologia === 'paralelo') {
-            // para el paralelo, dibujamos un anillo principal exterior que no se interrumpe
-            ctx.moveTo(xBreaker, yBreaker); ctx.lineTo(xBreaker, yTechoArriba);
-            ctx.lineTo(xTroncal, yTechoArriba); ctx.moveTo(xTroncal, yTechoArriba);
-            ctx.lineTo(xTroncal, yTechoAbajo); ctx.lineTo(xBreaker + 15, yTechoAbajo);
-            ctx.lineTo(xBreaker + 15, yBreaker);
-            // creamos derivaciones independientes (ramas) bajando hacia cada foco
-            for(let i=0; i<6; i++) {
-                const yTecho = i < 3 ? yTechoArriba : yTechoAbajo;
-                ctx.moveTo(pos[i].x, yTecho); ctx.lineTo(pos[i].x, pos[i].y - 15);
-            }
-
+            const rutas = this.obtenerRutasParalelo(pos, xBreaker, yBreaker, yL_Arriba, yN_Arriba, yL_Abajo, yN_Abajo, xTroncalL, xTroncalN);
+            this.trazarRutas(ctx, rutas);
         } else if (modelo.topologia === 'mixto') {
-            // en topologia mixta evaluamos como empieza la secuencia para combinar las conexiones
             if (modelo.secuenciaMixta[0].startsWith('S')) {
-                ctx.moveTo(xBreaker, yBreaker); ctx.lineTo(xBreaker, yTechoArriba);
-                // unimos los primeros dos focos en forma de serie
-                ctx.lineTo(pos[0].x, yTechoArriba); ctx.lineTo(pos[0].x, pos[0].y - 15); ctx.moveTo(pos[0].x, yTechoArriba);
-                ctx.lineTo(pos[1].x, yTechoArriba); ctx.lineTo(pos[1].x, pos[1].y - 15); ctx.moveTo(pos[1].x, yTechoArriba);
-                
-                // despues de la seccion en serie, abrimos el cable en ramas paralelas para los demas focos
-                ctx.lineTo(xTroncal, yTechoArriba); ctx.lineTo(xTroncal, yTechoAbajo);
-                ctx.lineTo(xBreaker + 15, yTechoAbajo); ctx.lineTo(xBreaker + 15, yBreaker);
-                for(let i=2; i<6; i++) {
-                    const yTecho = i < 3 ? yTechoArriba : yTechoAbajo;
-                    ctx.moveTo(pos[i].x, yTecho); ctx.lineTo(pos[i].x, pos[i].y - 15);
-                }
+                const rutas = this.obtenerRutasMixtoSeriePrimero(pos, xBreaker, yBreaker, yL_Arriba, yN_Arriba, yL_Abajo, yN_Abajo, xTroncalL, xTroncalN);
+                this.trazarRutas(ctx, rutas);
             } else {
-                // si comenzamos con paralelo, calculamos el punto donde los cables volveran a juntarse
-                const xMerge = pos[4].x - 30; 
-                
-                // enlazamos de manera paralela los focos de arriba
-                ctx.moveTo(xBreaker, yBreaker); ctx.lineTo(xBreaker, yTechoArriba);
-                ctx.lineTo(pos[2].x + 20, yTechoArriba); ctx.lineTo(pos[2].x + 20, yTechoAbajo - 20);
-                ctx.lineTo(xMerge, yTechoAbajo - 20); ctx.lineTo(xMerge, yTechoAbajo); // Converge abajo
-                for(let i=0; i<3; i++) { ctx.moveTo(pos[i].x, yTechoArriba); ctx.lineTo(pos[i].x, pos[i].y - 15); }
-
-                // enlazamos tambien el primer foco de abajo en su propia rama paralela
-                ctx.moveTo(xBreaker, yBreaker); ctx.lineTo(xBreaker, yTechoAbajo);
-                ctx.lineTo(xMerge, yTechoAbajo); // Converge abajo
-                ctx.moveTo(pos[3].x, yTechoAbajo); ctx.lineTo(pos[3].x, pos[3].y - 15);
-
-                // a partir del punto de union, pasamos por los ultimos dos focos en serie obligatoria
-                ctx.moveTo(xMerge, yTechoAbajo);
-                ctx.lineTo(pos[4].x, yTechoAbajo); ctx.lineTo(pos[4].x, pos[4].y - 15); ctx.moveTo(pos[4].x, yTechoAbajo);
-                ctx.lineTo(pos[5].x, yTechoAbajo); ctx.lineTo(pos[5].x, pos[5].y - 15); ctx.moveTo(pos[5].x, yTechoAbajo);
-
-                // regresamos el cable al origen dando la vuelta para cerrar el circuito limpiamente
-                ctx.lineTo(xTroncal, yTechoAbajo); ctx.lineTo(xTroncal, yTechoArriba - 20);
-                ctx.lineTo(xBreaker - 10, yTechoArriba - 20); ctx.lineTo(xBreaker - 10, yBreaker - 10);
+                const rutas = this.obtenerRutasMixtoParaleloPrimero(pos, xBreaker, yBreaker, yL_Arriba, yN_Arriba, yL_Abajo, yN_Abajo, xTroncalL, xTroncalN);
+                this.trazarRutas(ctx, rutas);
             }
         }
-        // hacemos que los trazos de los cables se hagan visibles en pantalla
         ctx.stroke();
         ctx.shadowBlur = 0;
 
@@ -141,36 +92,63 @@ export class RenderizadorMundoReal {
     }
 
     static dibujarElectronesEnCables(ctx, w, h, modelo, resultados, particulas) {
-    if (modelo.estadoSistema !== 'operativo' || resultados.iTotal < 0.001) return;
-    const velocidad = Math.min(resultados.iTotal * 0.25, 1.5);
-    const yTechoArriba = h * 0.30 - 40;
-    const yTechoAbajo  = h * 0.75 - 40;
-    const xBreaker     = w * 0.05;
-    const xTroncal     = w * 0.80 + 30;
-    const color        = '#00E5FF';
+        if (modelo.estadoSistema !== 'operativo' || resultados.iTotal < 0.001) return;
+        
+        const pos = [
+            { x: w * 0.20, y: h * 0.30 }, { x: w * 0.50, y: h * 0.30 }, { x: w * 0.80, y: h * 0.30 },
+            { x: w * 0.20, y: h * 0.75 }, { x: w * 0.50, y: h * 0.75 }, { x: w * 0.80, y: h * 0.75 }
+        ];
+        const xBreaker = w * 0.05; const yBreaker = h * 0.50; 
+        const yTechoArriba = pos[0].y - 40; const yTechoAbajo = pos[3].y - 40;
+        const yL_Arriba = yTechoArriba; const yN_Arriba = yTechoArriba - 8;
+        const yL_Abajo = yTechoAbajo; const yN_Abajo = yTechoAbajo + 8;
+        const xTroncalL = pos[2].x + 30; const xTroncalN = pos[2].x + 38;
 
-    ctx.fillStyle  = color;
-    ctx.shadowBlur = 6;
-    ctx.shadowColor = color;
-
-    particulas.forEach(p => {
-        p.prog = (p.prog + velocidad) % 100;
-        // recorrido simple: eje superior → troncal → eje inferior
-        const totalX = xTroncal - xBreaker;
-        const dist   = (p.prog / 100) * (totalX * 2 + (yTechoAbajo - yTechoArriba));
-        let px, py;
-        if (dist < totalX) {
-            px = xBreaker + dist; py = yTechoArriba;
-        } else if (dist < totalX + (yTechoAbajo - yTechoArriba)) {
-            px = xTroncal; py = yTechoArriba + (dist - totalX);
-        } else {
-            px = xTroncal - (dist - totalX - (yTechoAbajo - yTechoArriba));
-            py = yTechoAbajo;
+        // evaluamos cuáles ramas o rutas siguen vivas para que los electrones fluyan por ellas
+        let rutasActivas = [];
+        if (modelo.topologia === 'serie' && modelo.focoFundidoIndex === -1) {
+            rutasActivas = this.obtenerRutaSerie(pos, xBreaker, yBreaker, yTechoArriba, yTechoAbajo, xTroncalL);
+        } else if (modelo.topologia === 'paralelo') {
+            const rutasParticulas = this.obtenerRutasParticulasParalelo(pos, xBreaker, yBreaker, yL_Arriba, yN_Arriba, yL_Abajo, yN_Abajo, xTroncalL, xTroncalN);
+            let algunFocoActivo = false;
+            for(let i=0; i<6; i++) { 
+                if (i !== modelo.focoFundidoIndex) { 
+                    rutasActivas.push(rutasParticulas[i + 2]); 
+                    algunFocoActivo = true;
+                } 
+            }
+            if (algunFocoActivo) {
+                // Agregamos el anillo Fase y Neutro del "Cuadrado general" para que siempre lleven energía visible
+                rutasActivas.push(rutasParticulas[0]);
+                rutasActivas.push(rutasParticulas[1]);
+            }
+        } else if (modelo.topologia === 'mixto') {
+            if (modelo.secuenciaMixta[0].startsWith('S')) {
+                if (modelo.focoFundidoIndex !== 0 && modelo.focoFundidoIndex !== 1) {
+                    const rutas = this.obtenerRutasMixtoSeriePrimero(pos, xBreaker, yBreaker, yL_Arriba, yN_Arriba, yL_Abajo, yN_Abajo, xTroncalL, xTroncalN);
+                    for(let i=2; i<6; i++) { if (i !== modelo.focoFundidoIndex) rutasActivas.push(rutas[i-2]); }
+                }
+            } else {
+                if (modelo.focoFundidoIndex !== 4 && modelo.focoFundidoIndex !== 5) {
+                    const rutas = this.obtenerRutasMixtoParaleloPrimero(pos, xBreaker, yBreaker, yL_Arriba, yN_Arriba, yL_Abajo, yN_Abajo, xTroncalL, xTroncalN);
+                    for(let i=0; i<4; i++) { if (i !== modelo.focoFundidoIndex) rutasActivas.push(rutas[i]); }
+                }
+            }
         }
-        ctx.beginPath(); ctx.arc(px, py, 2.5, 0, Math.PI * 2); ctx.fill();
-    });
-    ctx.shadowBlur = 0;
-}
+        if (rutasActivas.length === 0) return;
+
+        const velocidad = Math.min(resultados.iTotal * 0.25, 1.5);
+        ctx.fillStyle = '#00E5FF'; ctx.shadowBlur = 6; ctx.shadowColor = '#00E5FF';
+
+        // distribuimos inteligentemente los electrones entre las ramas que esten sanas
+        particulas.forEach((p, index) => {
+            p.prog = (p.prog + velocidad) % 100;
+            const rutaAsignada = rutasActivas[index % rutasActivas.length];
+            const posP = this.obtenerPosicionRuta(rutaAsignada, p.prog);
+            ctx.beginPath(); ctx.arc(posP.x, posP.y, 2.5, 0, Math.PI * 2); ctx.fill();
+        });
+        ctx.shadowBlur = 0;
+    }
 
     static dibujarFocoEdison(ctx, x, y, potencia, estaFundido, etiqueta) {
         // determinamos el nivel de intensidad en funcion de la energia simulada
@@ -243,5 +221,153 @@ export class RenderizadorMundoReal {
         // colocamos un diodo LED que cambiara a rojo si simulamos un corto o a verde si esta estable
         ctx.fillStyle = estado === 'sobrecarga' ? '#FF3333' : '#00FF00';
         ctx.beginPath(); ctx.arc(x, y, 4, 0, 7); ctx.fill();
+    }
+
+    // ====================================================================
+    // GENERADORES DE RUTAS (MATEMÁTICA Y TRAZADOS)
+    // ====================================================================
+    
+    static trazarRutas(ctx, rutas) {
+        rutas.forEach(ruta => {
+            if (ruta.length === 0) return;
+            ctx.moveTo(ruta[0].x, ruta[0].y);
+            for(let i=1; i<ruta.length; i++) ctx.lineTo(ruta[i].x, ruta[i].y);
+        });
+    }
+
+    static obtenerPosicionRuta(ruta, progreso) {
+        let longitudTotal = 0;
+        const distancias = [];
+        for(let i=0; i<ruta.length - 1; i++) {
+            const d = Math.sqrt((ruta[i+1].x - ruta[i].x)**2 + (ruta[i+1].y - ruta[i].y)**2);
+            distancias.push(d); longitudTotal += d;
+        }
+        let distanciaObjetivo = (progreso / 100) * longitudTotal;
+        for(let i=0; i<ruta.length - 1; i++) {
+            if (distanciaObjetivo <= distancias[i] || i === ruta.length - 2) {
+                const t = distancias[i] > 0 ? distanciaObjetivo / distancias[i] : 0;
+                return { x: ruta[i].x + (ruta[i+1].x - ruta[i].x) * t, y: ruta[i].y + (ruta[i+1].y - ruta[i].y) * t };
+            }
+            distanciaObjetivo -= distancias[i];
+        }
+        return ruta[ruta.length-1];
+    }
+
+    static obtenerRutaSerie(pos, xBreaker, yBreaker, yTechoArriba, yTechoAbajo, xTroncal) {
+        const ruta = [];
+        ruta.push({x: xBreaker, y: yBreaker}); ruta.push({x: xBreaker, y: yTechoArriba});
+        for(let i=0; i<3; i++) {
+            ruta.push({x: pos[i].x - 10, y: yTechoArriba}); ruta.push({x: pos[i].x - 10, y: pos[i].y - 25});
+            ruta.push({x: pos[i].x + 10, y: pos[i].y - 25}); ruta.push({x: pos[i].x + 10, y: yTechoArriba});
+        }
+        ruta.push({x: xTroncal, y: yTechoArriba}); ruta.push({x: xTroncal, y: yTechoAbajo});
+        for(let i=5; i>=3; i--) {
+            ruta.push({x: pos[i].x + 10, y: yTechoAbajo}); ruta.push({x: pos[i].x + 10, y: pos[i].y - 25});
+            ruta.push({x: pos[i].x - 10, y: pos[i].y - 25}); ruta.push({x: pos[i].x - 10, y: yTechoAbajo});
+        }
+        ruta.push({x: xBreaker + 15, y: yTechoAbajo}); ruta.push({x: xBreaker + 15, y: yBreaker});
+        return [ruta]; 
+    }
+
+    static obtenerRutasParalelo(pos, xBreaker, yBreaker, yL_Arriba, yN_Arriba, yL_Abajo, yN_Abajo, xTroncalL, xTroncalN) {
+        const rutas = [];
+        
+        // Trazamos el Loop Principal de la Fase (El cuadrado exterior)
+        rutas.push([
+            {x: xBreaker, y: yBreaker}, {x: xBreaker, y: yL_Arriba}, 
+            {x: xTroncalL, y: yL_Arriba}, {x: xTroncalL, y: yL_Abajo}, 
+            {x: xBreaker, y: yL_Abajo}, {x: xBreaker, y: yBreaker}
+        ]);
+        
+        // Trazamos el Loop Principal del Neutro (El cuadrado interior)
+        rutas.push([
+            {x: xBreaker + 8, y: yBreaker}, {x: xBreaker + 8, y: yN_Arriba}, 
+            {x: xTroncalN, y: yN_Arriba}, {x: xTroncalN, y: yN_Abajo}, 
+            {x: xBreaker + 8, y: yN_Abajo}, {x: xBreaker + 8, y: yBreaker}
+        ]);
+
+        for(let i=0; i<6; i++) {
+            const yL = i < 3 ? yL_Arriba : yL_Abajo;
+            const yN = i < 3 ? yN_Arriba : yN_Abajo;
+            
+            const ruta = [];
+            ruta.push({x: pos[i].x - 5, y: yL}); 
+            ruta.push({x: pos[i].x - 5, y: pos[i].y - 25}); 
+            rutas.push(ruta);
+            
+            const rutaN = [];
+            rutaN.push({x: pos[i].x + 5, y: yN}); 
+            rutaN.push({x: pos[i].x + 5, y: pos[i].y - 25}); 
+            rutas.push(rutaN);
+        }
+        return rutas;
+    }
+
+    static obtenerRutasParticulasParalelo(pos, xBreaker, yBreaker, yL_Arriba, yN_Arriba, yL_Abajo, yN_Abajo, xTroncalL, xTroncalN) {
+        const rutas = [];
+        // Permitimos que los electrones naveguen de forma continua alrededor de las troncales
+        rutas.push([{x: xBreaker, y: yBreaker}, {x: xBreaker, y: yL_Arriba}, {x: xTroncalL, y: yL_Arriba}, {x: xTroncalL, y: yL_Abajo}, {x: xBreaker, y: yL_Abajo}, {x: xBreaker, y: yBreaker}]);
+        rutas.push([{x: xBreaker + 8, y: yBreaker}, {x: xBreaker + 8, y: yN_Arriba}, {x: xTroncalN, y: yN_Arriba}, {x: xTroncalN, y: yN_Abajo}, {x: xBreaker + 8, y: yN_Abajo}, {x: xBreaker + 8, y: yBreaker}]);
+
+        // Y también creamos el recorrido completo que hacen a través de cada foco
+        for(let i=0; i<6; i++) {
+            const yL = i < 3 ? yL_Arriba : yL_Abajo;
+            const yN = i < 3 ? yN_Arriba : yN_Abajo;
+            rutas.push([
+                {x: xBreaker, y: yBreaker}, {x: xBreaker, y: yL}, {x: pos[i].x - 5, y: yL}, {x: pos[i].x - 5, y: pos[i].y - 25}, 
+                {x: pos[i].x + 5, y: pos[i].y - 25}, {x: pos[i].x + 5, y: yN}, {x: xBreaker + 8, y: yN}, {x: xBreaker + 8, y: yBreaker}
+            ]);
+        }
+        return rutas;
+    }
+
+    static obtenerRutasMixtoSeriePrimero(pos, xBreaker, yBreaker, yL_Arriba, yN_Arriba, yL_Abajo, yN_Abajo, xTroncalL, xTroncalN) {
+        const rutas = [];
+        for(let j=2; j<6; j++) {
+            const ruta = [];
+            ruta.push({x: xBreaker, y: yBreaker}); ruta.push({x: xBreaker, y: yL_Arriba});
+            ruta.push({x: pos[0].x - 10, y: yL_Arriba}); ruta.push({x: pos[0].x - 10, y: pos[0].y - 25});
+            ruta.push({x: pos[0].x + 10, y: pos[0].y - 25}); ruta.push({x: pos[0].x + 10, y: yL_Arriba});
+            ruta.push({x: pos[1].x - 10, y: yL_Arriba}); ruta.push({x: pos[1].x - 10, y: pos[1].y - 25});
+            ruta.push({x: pos[1].x + 10, y: pos[1].y - 25}); ruta.push({x: pos[1].x + 10, y: yL_Arriba}); 
+            const yL = j < 3 ? yL_Arriba : yL_Abajo;
+            const yN = j < 3 ? yN_Arriba : yN_Abajo;
+            if (j >= 3) { ruta.push({x: xTroncalL, y: yL_Arriba}); ruta.push({x: xTroncalL, y: yL_Abajo}); }
+            ruta.push({x: pos[j].x - 5, y: yL}); ruta.push({x: pos[j].x - 5, y: pos[j].y - 25});
+            ruta.push({x: pos[j].x + 5, y: pos[j].y - 25}); ruta.push({x: pos[j].x + 5, y: yN}); 
+            if (j >= 3) { ruta.push({x: xTroncalN, y: yN_Abajo}); ruta.push({x: xTroncalN, y: yN_Arriba}); }
+            ruta.push({x: xBreaker - 5, y: yN_Arriba}); ruta.push({x: xBreaker - 5, y: yBreaker});
+            rutas.push(ruta);
+        }
+        return rutas;
+    }
+
+    static obtenerRutasMixtoParaleloPrimero(pos, xBreaker, yBreaker, yL_Arriba, yN_Arriba, yL_Abajo, yN_Abajo, xTroncalL, xTroncalN) {
+        const rutas = [];
+        const xMerge = pos[4].x - 30; 
+        for(let j=0; j<4; j++) {
+            const ruta = [];
+            ruta.push({x: xBreaker, y: yBreaker});
+            const yL = j < 3 ? yL_Arriba : yL_Abajo;
+            ruta.push({x: xBreaker, y: yL}); 
+            if (j === 3) ruta.push({x: pos[3].x - 5, y: yL_Abajo});
+            else ruta.push({x: pos[j].x - 5, y: yL_Arriba});
+            ruta.push({x: pos[j].x - 5, y: pos[j].y - 25}); ruta.push({x: pos[j].x + 5, y: pos[j].y - 25}); 
+            if (j < 3) {
+                ruta.push({x: pos[j].x + 5, y: yN_Arriba}); ruta.push({x: pos[2].x + 20, y: yN_Arriba});
+                ruta.push({x: pos[2].x + 20, y: yN_Abajo - 20}); ruta.push({x: xMerge, y: yN_Abajo - 20});
+                ruta.push({x: xMerge, y: yN_Abajo});
+            } else {
+                ruta.push({x: pos[3].x + 5, y: yN_Abajo}); ruta.push({x: xMerge, y: yN_Abajo});
+            }
+            ruta.push({x: pos[4].x - 10, y: yN_Abajo}); ruta.push({x: pos[4].x - 10, y: pos[4].y - 25});
+            ruta.push({x: pos[4].x + 10, y: pos[4].y - 25}); ruta.push({x: pos[4].x + 10, y: yN_Abajo});
+            ruta.push({x: pos[5].x - 10, y: yN_Abajo}); ruta.push({x: pos[5].x - 10, y: pos[5].y - 25});
+            ruta.push({x: pos[5].x + 10, y: pos[5].y - 25}); ruta.push({x: pos[5].x + 10, y: yN_Abajo});
+            ruta.push({x: xTroncalN, y: yN_Abajo}); ruta.push({x: xTroncalN, y: yN_Arriba - 20});
+            ruta.push({x: xBreaker - 10, y: yN_Arriba - 20}); ruta.push({x: xBreaker - 10, y: yBreaker - 10});
+            rutas.push(ruta);
+        }
+        return rutas;
     }
 }

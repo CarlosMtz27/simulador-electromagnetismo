@@ -53,7 +53,7 @@ export class VistaCircuitos {
     renderizarPlantilla() {
         // inyectamos en el documento html puro todas las cajas de diseno visual y herramientas
         this.contenedor.innerHTML = `
-            <div class="module-container">
+            <div class="module-container" style="gap: 1rem; grid-template-columns: 1fr 400px;">
                 <div class="canvas-panel" style="flex-direction: column;">
                     
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%; margin-bottom: 15px; min-height: 45px;">
@@ -88,13 +88,13 @@ export class VistaCircuitos {
                 <div class="controls-panel">
                     <h2 class="panel-title">Diseño de Red</h2>
                     
-                    <div style="display: flex; gap: 0.5rem; margin-bottom: 2rem;">
+                    <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
                         <button id="btn-serie" style="flex: 1; font-size: 0.8rem; padding: 0.8rem 0.2rem; background: transparent; border: 1px solid var(--border-color); color: var(--text-primary); border-radius: 4px; cursor: pointer;">Serie</button>
                         <button id="btn-paralelo" style="flex: 1; font-size: 0.8rem; padding: 0.8rem 0.2rem; background: var(--accent); border: 1px solid var(--accent); color: white; border-radius: 4px; cursor: pointer;">Paralelo</button>
                         <button id="btn-mixto" style="flex: 1; font-size: 0.8rem; padding: 0.8rem 0.2rem; background: transparent; border: 1px solid var(--border-color); color: var(--text-primary); border-radius: 4px; cursor: pointer;">Mixto</button>
                     </div>
 
-                    <div id="panel-slider-voltaje" style="margin-bottom: 1.5rem;">
+                    <div id="panel-slider-voltaje" style="margin-bottom: 1rem;">
                         <label style="display: flex; justify-content: space-between; color: var(--text-secondary); margin-bottom: 0.5rem; font-size: 0.85rem;">
                             <span>Voltaje de Fuente (V)</span><span id="val-voltaje" style="color: var(--text-primary); font-weight: bold;">120 V</span>
                         </label>
@@ -102,13 +102,13 @@ export class VistaCircuitos {
                     </div>
 
                     <div id="panel-sliders-topologia">
-                        <div id="panel-slider-serie" style="margin-bottom: 1.5rem;">
+                        <div id="panel-slider-serie" style="margin-bottom: 1rem;">
                             <label style="display: flex; justify-content: space-between; color: var(--text-secondary); margin-bottom: 0.5rem; font-size: 0.85rem;">
                                 <span>Cargas en Serie</span><span id="val-serie" style="color: var(--text-primary); font-weight: bold;">1</span>
                             </label>
                             <input type="range" id="slider-serie" min="1" max="5" value="1" style="width: 100%; accent-color: var(--accent);">
                         </div>
-                        <div id="panel-slider-paralelo" style="margin-bottom: 1.5rem;">
+                        <div id="panel-slider-paralelo" style="margin-bottom: 1rem;">
                             <label style="display: flex; justify-content: space-between; color: var(--text-secondary); margin-bottom: 0.5rem; font-size: 0.85rem;">
                                 <span>Ramas en Paralelo</span><span id="val-paralelo" style="color: var(--text-primary); font-weight: bold;">2</span>
                             </label>
@@ -116,7 +116,7 @@ export class VistaCircuitos {
                         </div>
                     </div>
 
-                    <div id="panel-constructor-mixto" style="margin-bottom: 1.5rem; display: none; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px; border: 1px solid var(--border-color);">
+                    <div id="panel-constructor-mixto" style="margin-bottom: 1rem; display: none; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px; border: 1px solid var(--border-color);">
                         <label style="display: block; color: var(--text-secondary); margin-bottom: 0.5rem; font-size: 0.85rem; text-transform: uppercase;">Constructor Mixto (Máx 6)</label>
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 10px;">
                             <button id="btn-add-s-top" style="padding: 6px; background: var(--border-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">+ Serie Arriba</button>
@@ -127,9 +127,9 @@ export class VistaCircuitos {
                         <div id="val-secuencia" style="color: var(--accent); font-weight: bold; font-size: 0.8rem; text-align: center; word-break: break-word; margin-top: 10px; min-height: 1.2em;">...</div>
                     </div>
 
-                    <div id="panel-valores-resistencias" style="margin-bottom: 1.5rem; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px; border: 1px solid var(--border-color); display: none;"></div>
+                    <div id="panel-valores-resistencias" style="margin-bottom: 1rem; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px; border: 1px solid var(--border-color); display: none;"></div>
 
-                    <div style="display: flex; gap: 1rem; margin-bottom: 2rem;">
+                    <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
                         <div style="flex: 1; background: var(--bg-base); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color); text-align: center;">
                             <span style="color: var(--text-secondary); font-size: 0.75rem;">R. EQUIVALENTE</span>
                             <div style="font-size: 1.5rem; color: var(--text-primary); font-weight: bold; margin-top: 0.5rem;">
@@ -153,7 +153,7 @@ export class VistaCircuitos {
         `;
     }
 
-    ajustarCanvas() { this.canvas.width = this.canvas.parentElement.clientWidth; this.canvas.height = 450; }
+    ajustarCanvas() { this.canvas.width = this.canvas.parentElement.clientWidth; this.canvas.height = 400; }
 
     actualizarUI(modelo) {
         // escribimos en pantalla las medidas fisicas extraidas de los calculos del sistema
@@ -249,7 +249,7 @@ export class VistaCircuitos {
         const currentInputs = this.panelValoresResistencias.querySelectorAll('.input-res');
         if (currentInputs.length !== modelo.resistencias.length || this.ultimaTopologia !== modelo.topologia) {
             this.ultimaTopologia = modelo.topologia;
-            let html = '<label style="display: block; color: var(--text-secondary); margin-bottom: 0.5rem; font-size: 0.85rem; text-transform: uppercase;">Valores Individuales (Ω)</label><div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.5rem;">';
+            let html = '<label style="display: block; color: var(--text-secondary); margin-bottom: 0.5rem; font-size: 0.85rem; text-transform: uppercase;">Resistencias (Ω)</label><div style="display:flex; flex-direction:column; gap:0.5rem;">';
             
             // construimos el HTML mediante map y join para evitar concatenaciones iterativas costosas
             html += modelo.resistencias.map((res, i) => {
@@ -258,14 +258,22 @@ export class VistaCircuitos {
                     const tipo = modelo.secuenciaMixta[i];
                     name = tipo === 'S_top' ? `R${i+1} (Arriba)` : tipo === 'S_bot' ? `R${i+1} (Abajo)` : `R${i+1} (Rama)`;
                 }
-                return `<div style="display:flex; align-items:center; gap:5px;"><span style="font-size:0.75rem; color:var(--text-secondary); width: 70px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${name}</span><input type="number" min="0.1" step="0.1" class="input-res" data-index="${i}" value="${res}" style="width:100%; padding:4px; background:var(--bg-base); color:var(--text-primary); border:1px solid var(--border-color); border-radius:4px;"></div>`;
+                return `<div style="display:flex; align-items:center; gap:8px; background: rgba(0,0,0,0.2); padding: 6px; border-radius: 6px; border: 1px solid var(--border-color);">
+                            <span style="font-size:0.75rem; color:var(--text-secondary); width: 70px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${name}</span>
+                            <input type="range" min="10" max="1000" step="1" class="slider-res" data-index="${i}" value="${res}" style="flex:1; accent-color: var(--accent);">
+                            <input type="number" min="0.1" max="5000" step="0.1" class="input-res" data-index="${i}" value="${res}" style="width:60px; padding:4px; background:var(--bg-base); color:var(--text-primary); border:1px solid var(--border-color); border-radius:4px; text-align: center;">
+                        </div>`;
             }).join('');
             
             html += '</div>';
             this.panelValoresResistencias.innerHTML = html;
         } else {
+            const currentSliders = this.panelValoresResistencias.querySelectorAll('.slider-res');
             currentInputs.forEach((input, i) => {
                 if (document.activeElement !== input) input.value = modelo.resistencias[i];
+            });
+            currentSliders.forEach((slider, i) => {
+                if (document.activeElement !== slider) slider.value = modelo.resistencias[i];
             });
         }
     }

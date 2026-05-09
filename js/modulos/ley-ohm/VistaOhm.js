@@ -18,9 +18,11 @@ export class VistaOhm {
         this.sliderV = document.getElementById('slider-v');
         this.sliderR = document.getElementById('slider-r');
         this.sliderP = document.getElementById('slider-p');
-        this.valV = document.getElementById('val-v');
-        this.valR = document.getElementById('val-r');
-        this.valP = document.getElementById('val-p');
+        this.inputV = document.getElementById('input-v');
+        this.inputR = document.getElementById('input-r');
+        this.inputP = document.getElementById('input-p');
+        this.valI = document.getElementById('val-i');
+        this.valPotencia = document.getElementById('val-potencia');
         this.labelP = document.getElementById('label-potencia');
         this.panelPrediccion = document.getElementById('panel-prediccion');
         this.panelAlerta = document.getElementById('panel-alerta');
@@ -41,7 +43,7 @@ export class VistaOhm {
     renderizarPlantilla() {
         // construimos todo el esquema html de manera dinamica incluyendo sliders y textos base
         this.contenedor.innerHTML = `
-            <div class="module-container">
+            <div class="module-container" style="gap: 1rem;">
                 <div class="canvas-panel" style="flex-direction: column; position: relative;">
                     <button id="btn-modo-ohm" style="position: absolute; top: 1rem; right: 1rem; padding: 0.5rem 1rem; background: var(--bg-panel-alt); border: 1px solid var(--accent); color: var(--accent); border-radius: 20px; cursor: pointer; z-index: 5; font-weight: bold; transition: 0.3s;">
                         Ver Carga de Celular
@@ -51,21 +53,29 @@ export class VistaOhm {
                 <div class="controls-panel">
                     <h2 class="panel-title">Potencia y Riesgo Térmico</h2>
                     
-                    <div style="margin-bottom: 1.2rem;">
-                        <label style="display: flex; justify-content: space-between; color: var(--text-secondary); font-size: 0.85rem;">
-                            <span>Voltaje (V)</span><span id="val-v">12 V</span>
+                    <div style="margin-bottom: 1rem;">
+                        <label style="display: flex; justify-content: space-between; align-items: center; color: var(--text-secondary); font-size: 0.85rem;">
+                            <span>Voltaje (V)</span>
+                            <div style="display: flex; align-items: center; gap: 5px;">
+                                <input type="number" id="input-v" min="1" max="150" step="0.1" value="12" style="width: 60px; background: var(--bg-base); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 4px; padding: 2px 4px; text-align: center;">
+                                <span style="color: var(--text-primary); font-weight: bold; width: 15px;">V</span>
+                            </div>
                         </label>
-                        <input type="range" id="slider-v" min="1" max="60" value="12" style="width: 100%; accent-color: var(--accent);">
+                        <input type="range" id="slider-v" min="1" max="150" step="0.1" value="12" style="width: 100%; accent-color: var(--accent);">
                     </div>
 
-                    <div id="panel-resistencia" style="margin-bottom: 1.2rem;">
-                        <label style="display: flex; justify-content: space-between; color: var(--text-secondary); font-size: 0.85rem;">
-                            <span>Resistencia (Ω)</span><span id="val-r">100 Ω</span>
+                    <div id="panel-resistencia" style="margin-bottom: 1rem;">
+                        <label style="display: flex; justify-content: space-between; align-items: center; color: var(--text-secondary); font-size: 0.85rem;">
+                            <span>Resistencia (Ω)</span>
+                            <div style="display: flex; align-items: center; gap: 5px;">
+                                <input type="number" id="input-r" min="1" max="500" step="0.1" value="100" style="width: 60px; background: var(--bg-base); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 4px; padding: 2px 4px; text-align: center;">
+                                <span style="color: var(--text-primary); font-weight: bold; width: 15px;">Ω</span>
+                            </div>
                         </label>
-                        <input type="range" id="slider-r" min="1" max="500" value="100" style="width: 100%; accent-color: var(--accent);">
+                        <input type="range" id="slider-r" min="1" max="500" step="0.1" value="100" style="width: 100%; accent-color: var(--accent);">
                     </div>
 
-                    <div id="panel-celular" style="margin-bottom: 1.2rem; display: none;">
+                    <div id="panel-celular" style="margin-bottom: 1rem; display: none;">
                         <label style="display: flex; justify-content: space-between; color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 0.5rem;">
                             <span>Modelo de Celular</span>
                         </label>
@@ -77,15 +87,27 @@ export class VistaOhm {
                         </select>
                     </div>
 
-                    <div style="margin-bottom: 2rem;">
-                        <label style="display: flex; justify-content: space-between; color: var(--text-secondary); font-size: 0.85rem;">
-                            <span id="label-potencia">Límite Térmico de R (W)</span><span id="val-p" style="color: var(--accent);">50 W</span>
+                    <div style="margin-bottom: 1rem;">
+                        <label style="display: flex; justify-content: space-between; align-items: center; color: var(--text-secondary); font-size: 0.85rem;">
+                            <span id="label-potencia">Límite Térmico de R (W)</span>
+                            <div style="display: flex; align-items: center; gap: 5px;">
+                                <input type="number" id="input-p" min="1" max="150" step="0.1" value="50" style="width: 60px; background: var(--bg-base); color: var(--accent); border: 1px solid var(--border-color); border-radius: 4px; padding: 2px 4px; text-align: center; font-weight: bold;">
+                                <span style="color: var(--accent); font-weight: bold; width: 15px;">W</span>
+                            </div>
                         </label>
-                        <input type="range" id="slider-p" min="1" max="150" value="50" style="width: 100%; accent-color: var(--accent);">
+                        <input type="range" id="slider-p" min="1" max="150" step="0.1" value="50" style="width: 100%; accent-color: var(--accent);">
                     </div>
 
                     <div style="background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); border-radius: 8px; padding: 15px;">
                         <div id="panel-prediccion" style="margin-bottom: 10px;">
+                            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                                <div style="flex: 1; font-size: 0.9rem; color: var(--accent); font-weight: bold; background: rgba(0,0,0,0.2); border: 1px solid var(--border-color); padding: 8px; border-radius: 6px; text-align: center;">
+                                    Corriente (I): <br><span id="val-i" style="font-size: 1.1rem;">0.12</span> A
+                                </div>
+                                <div style="flex: 1; font-size: 0.9rem; color: #00E5FF; font-weight: bold; background: rgba(0,0,0,0.2); border: 1px solid var(--border-color); padding: 8px; border-radius: 6px; text-align: center;">
+                                    Potencia (P): <br><span id="val-potencia" style="font-size: 1.1rem;">1.44</span> W
+                                </div>
+                            </div>
                             <div style="font-size: 0.85rem; color: var(--text-primary);">Voltaje de ruptura: <span id="critico-v" style="font-weight: bold;">--</span></div>
                             <div style="font-size: 0.85rem; color: var(--text-primary);">Resistencia mínima: <span id="critico-r" style="font-weight: bold;">--</span></div>
                         </div>
@@ -96,13 +118,18 @@ export class VistaOhm {
         `;
     }
 
-    ajustarCanvas() { this.canvas.width = this.canvas.parentElement.clientWidth; this.canvas.height = 450; }
+    ajustarCanvas() { this.canvas.width = this.canvas.parentElement.clientWidth; this.canvas.height = 400; }
 
     actualizarUI(modelo) {
-        // imprimimos los valores de los sliders en la pantalla para que el usuario los vea
-        this.valV.innerText = `${modelo.voltaje} V`;
-        this.valR.innerText = `${modelo.resistencia} Ω`;
-        this.valP.innerText = `${modelo.limitePotencia} W`;
+        // mantenemos los rangos deslizables sincronizados con los valores del modelo
+        this.sliderV.value = modelo.voltaje;
+        this.sliderR.value = modelo.resistencia;
+        this.sliderP.value = modelo.limitePotencia;
+
+        // actualizamos las cajas de texto numerico solo si el usuario no las esta editando en este preciso momento
+        if (document.activeElement !== this.inputV) this.inputV.value = modelo.voltaje;
+        if (document.activeElement !== this.inputR) this.inputR.value = modelo.resistencia;
+        if (document.activeElement !== this.inputP) this.inputP.value = modelo.limitePotencia;
 
         // preparamos una variable vacia para guardar la informacion de nuestra alerta
         let infoAlerta;
@@ -117,6 +144,10 @@ export class VistaOhm {
             this.panelPrediccion.style.display = 'block';
             this.labelP.innerText = 'Límite Térmico de Resistencia (W)';
             
+            // proyectamos el flujo de electrones en Amperios en nuestra nueva caja resaltada
+            this.valI.innerText = modelo.getCorrienteLab().toFixed(2);
+            this.valPotencia.innerText = modelo.getPotenciaLab().toFixed(2);
+
             this.criticoV.innerText = `${modelo.getVoltajeCritico().toFixed(1)} V`;
             this.criticoR.innerText = `${modelo.getResistenciaCritica().toFixed(1)} Ω`;
 
@@ -178,6 +209,6 @@ export class VistaOhm {
         }
 
         // delegamos el dibujo preciso del celular a nuestro archivo especializado pasandole el porcentaje
-        RenderizadorCelular.dibujar(ctx, cx + 50, cy - 20, modelo.celularSeleccionado.id, modelo.estadoCelular, this.bateriaCelular, this.humoObj);
+        RenderizadorCelular.dibujar(ctx, cx + 50, cy - 20, modelo.celularSeleccionado.id, modelo.estadoCelular, this.bateriaCelular, this.humoObj, modelo);
     }
 }

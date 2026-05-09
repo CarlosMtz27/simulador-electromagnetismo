@@ -22,7 +22,7 @@ export class ControladorCircuitos {
         this.vista.sliderVoltaje.addEventListener('input', (e) => this.modelo.setVoltaje(e.target.value));
 
         this.vista.panelValoresResistencias.addEventListener('input', (e) => {
-            if (e.target.classList.contains('input-res')) {
+            if (e.target.classList.contains('input-res') || e.target.classList.contains('slider-res')) {
                 this.modelo.setResistenciaIndividual(e.target.dataset.index, e.target.value);
             }
         });
