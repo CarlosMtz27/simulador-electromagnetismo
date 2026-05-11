@@ -1,7 +1,23 @@
 import { RenderizadorBase } from '../../../shared/RenderizadorBase.js';
 import { AnimadorElectrones } from '../../../shared/AnimadorElectrones.js';
 
+/**
+ * Clase EstrategiaParalelo
+ * Nos encargamos de trazar y animar visualmente un circuito electrico
+ * configurado completamente en paralelo, dividiendo la corriente en multiples ramas.
+ */
 export class EstrategiaParalelo {
+    /**
+     * Dibujamos el circuito en paralelo, ajustando el espaciado de cada rama
+     * automaticamente para aprovechar todo el ancho del lienzo de manera estetica.
+     * 
+     * @param {CanvasRenderingContext2D} ctx - El pincel del canvas.
+     * @param {number} w - Ancho del area de dibujo.
+     * @param {number} h - Alto del area de dibujo.
+     * @param {Object} modelo - El estado fisico actual del sistema.
+     * @param {Object} resultados - Los calculos matematicos de potencia y corriente.
+     * @param {Array} particulas - La lista de electrones para animar.
+     */
     static dibujar(ctx, w, h, modelo, resultados, particulas) {
         // definimos los margenes y el tamano util que tendremos para el area de dibujo
         const margen = 60; const x0 = margen; const y0 = margen;
@@ -11,8 +27,8 @@ export class EstrategiaParalelo {
         const totalItems = modelo.numParalelo;
         const espaciado = Math.min(100, anchoDisponible / totalItems);
         let nodosX = [];
-        for(let i=0; i<totalItems; i++) nodosX.push(x0 + (i + 0.5) * espaciado);
-        const xFinal = x0 + totalItems * espaciado;
+        for(let i=0; i<totalItems; i++) nodosX.push(x0 + (i + 1) * espaciado);
+        const xFinal = nodosX[totalItems - 1];
 
         // configuramos el color y el brillo del cable dependiendo de si detectamos una sobrecarga
         const colorLinea = modelo.estadoSistema === 'sobrecarga' ? 'rgba(255, 165, 0, 0.6)' : '#2D313F';
@@ -29,14 +45,16 @@ export class EstrategiaParalelo {
 
         // dibujamos el lazo perimetral y luego trazamos cada una de las lineas verticales (ramas paralelas)
         ctx.beginPath();
-        ctx.moveTo(x0, y0);
-        ctx.lineTo(xFinal - 25, y0);
-        ctx.arcTo(xFinal, y0, xFinal, y0 + 25, 25);
-        ctx.lineTo(xFinal, y0 + altoLazo - 25);
-        ctx.arcTo(xFinal, y0 + altoLazo, xFinal - 25, y0 + altoLazo, 25);
-        ctx.lineTo(x0, y0 + altoLazo);
-        for (let i = 0; i < totalItems; i++) { ctx.moveTo(nodosX[i], y0); ctx.lineTo(nodosX[i], y0 + altoLazo); }
-        ctx.stroke(); ctx.shadowBlur = 0;
+        ctx.roundRect(x0, y0, xFinal - x0, altoLazo, 25);
+        for (let i = 0; i < totalItems - 1; i++) { 
+            ctx.moveTo(nodosX[i], y0); 
+            ctx.lineTo(nodosX[i], y0 + altoLazo); 
+        }
+        ctx.stroke(); 
+        ctx.shadowBlur = 0;
+
+        // limpiamos el cable donde va la bateria para que parezca conectada a los polos
+        ctx.clearRect(x0 - 20, y0 + altoLazo / 2 - 35, 40, 70);
 
         // colocamos la fuente de alimentacion (bateria) en el lado izquierdo
         RenderizadorBase.dibujarBateria(ctx, x0, y0 + altoLazo/2, modelo.voltaje, modelo.estadoSistema);

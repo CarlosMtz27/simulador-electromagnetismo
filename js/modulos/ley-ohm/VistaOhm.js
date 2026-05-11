@@ -2,15 +2,24 @@ import { DiccionarioOhm } from './DiccionarioOhm.js';
 import { RenderizadorCelular } from './renderizadores/Celular.js';
 import { RenderizadorDiagrama } from './renderizadores/Diagrama.js';
 
+/**
+ * Clase VistaOhm
+ * Nos encargamos de construir y actualizar la interfaz grafica para
+ * el modulo de la Ley de Ohm.
+ */
 export class VistaOhm {
+    /**
+     * Inicializamos la vista y obtenemos las referencias del DOM.
+     * @param {HTMLElement} contenedor - El elemento base donde inyectamos la vista.
+     */
     constructor(contenedor) {
-        // inyectamos nuestra estructura visual en la pagina y preparamos nuestro lienzo de dibujo
+        // Inyectamos nuestra estructura visual en la pagina y preparamos nuestro lienzo de dibujo
         this.contenedor = contenedor;
         this.renderizarPlantilla();
         this.canvas = document.getElementById('canvas-ohm');
         this.ctx = this.canvas.getContext('2d');
         
-        // capturamos todos los controles interactivos para que el controlador los pueda escuchar
+        // Capturamos todos los controles interactivos para que el controlador los pueda escuchar
         this.btnModo = document.getElementById('btn-modo-ohm');
         this.panelResistencia = document.getElementById('panel-resistencia');
         this.panelCelular = document.getElementById('panel-celular');
@@ -29,19 +38,22 @@ export class VistaOhm {
         this.criticoV = document.getElementById('critico-v');
         this.criticoR = document.getElementById('critico-r');
 
-        // preparamos nuestros generadores de particulas y la bateria virtual
+        // Preparamos nuestros generadores de particulas y la bateria virtual
         this.particulas = Array.from({length: 60}, () => ({ prog: Math.random() * 100 }));
         this.humoObj = { angulo: 0 };
         this.bateriaCelular = 0;
         
-        // cargamos anticipadamente la imagen del cuarto para tenerla lista cuando simulamos la pared
+        // Cargamos anticipadamente la imagen del cuarto para tenerla lista cuando simulamos la pared
         this.imgFondo = new Image();
         this.imgFondo.src = '../../assets/img/Fondo.jpg'; 
         this.ajustarCanvas();
     }
 
+    /**
+     * Inyectamos la estructura HTML del panel de controles y el canvas.
+     */
     renderizarPlantilla() {
-        // construimos todo el esquema html de manera dinamica incluyendo sliders y textos base
+        // Construimos todo el esquema HTML de manera dinamica incluyendo sliders y textos base
         this.contenedor.innerHTML = `
             <div class="module-container" style="gap: 1rem;">
                 <div class="canvas-panel" style="flex-direction: column; position: relative;">
@@ -118,24 +130,31 @@ export class VistaOhm {
         `;
     }
 
+    /**
+     * Ajustamos dinamicamente las dimensiones de nuestro lienzo de dibujo.
+     */
     ajustarCanvas() { this.canvas.width = this.canvas.parentElement.clientWidth; this.canvas.height = 400; }
 
+    /**
+     * Refrescamos la interfaz de usuario con los valores mas recientes.
+     * @param {Object} modelo - El estado fisico actual del sistema.
+     */
     actualizarUI(modelo) {
-        // mantenemos los rangos deslizables sincronizados con los valores del modelo
+        // Mantenemos los rangos deslizables sincronizados con los valores del modelo
         this.sliderV.value = modelo.voltaje;
         this.sliderR.value = modelo.resistencia;
         this.sliderP.value = modelo.limitePotencia;
 
-        // actualizamos las cajas de texto numerico solo si el usuario no las esta editando en este preciso momento
+        // Actualizamos las cajas de texto numerico solo si el usuario no las esta editando en este preciso momento
         if (document.activeElement !== this.inputV) this.inputV.value = modelo.voltaje;
         if (document.activeElement !== this.inputR) this.inputR.value = modelo.resistencia;
         if (document.activeElement !== this.inputP) this.inputP.value = modelo.limitePotencia;
 
-        // preparamos una variable vacia para guardar la informacion de nuestra alerta
+        // Preparamos una variable vacia para guardar la informacion de nuestra alerta
         let infoAlerta;
 
         if (modelo.modoVista === 'diagrama') {
-            // si estamos en el laboratorio, mostramos la interfaz tecnica y las predicciones matematicas
+            // Si estamos en el laboratorio, mostramos la interfaz tecnica y las predicciones matematicas
             this.btnModo.innerText = 'Ver Carga de Celular';
             this.btnModo.style.background = 'var(--bg-panel-alt)';
             this.btnModo.style.color = 'var(--accent)';
@@ -144,18 +163,18 @@ export class VistaOhm {
             this.panelPrediccion.style.display = 'block';
             this.labelP.innerText = 'Límite Térmico de Resistencia (W)';
             
-            // proyectamos el flujo de electrones en Amperios en nuestra nueva caja resaltada
+            // Proyectamos el flujo de electrones en Amperios en nuestra nueva caja resaltada
             this.valI.innerText = modelo.getCorrienteLab().toFixed(2);
             this.valPotencia.innerText = modelo.getPotenciaLab().toFixed(2);
 
             this.criticoV.innerText = `${modelo.getVoltajeCritico().toFixed(1)} V`;
             this.criticoR.innerText = `${modelo.getResistenciaCritica().toFixed(1)} Ω`;
 
-            // consultamos nuestro diccionario para pintar el mensaje de advertencia del circuito
+            // Consultamos nuestro diccionario para pintar el mensaje de advertencia del circuito
             infoAlerta = DiccionarioOhm.laboratorio[modelo.estadoLab];
 
         } else {
-            // si cambiamos al modo celular, ocultamos lo tecnico y cambiamos los textos de los menus
+            // Si cambiamos al modo celular, ocultamos lo tecnico y cambiamos los textos de los menus
             this.btnModo.innerText = 'Ver Diagrama Técnico';
             this.btnModo.style.background = 'var(--accent)';
             this.btnModo.style.color = 'white';
@@ -164,18 +183,22 @@ export class VistaOhm {
             this.panelPrediccion.style.display = 'none'; 
             this.labelP.innerText = 'Potencia del Cargador (W)';
 
-            // actualizamos el recuadro de informacion con el estado vital del dispositivo
+            // Actualizamos el recuadro de informacion con el estado vital del dispositivo
             infoAlerta = DiccionarioOhm.celular[modelo.estadoCelular];
         }
         
-        // aplicamos los estilos y textos en un solo lugar para no repetir codigo en los condicionales
+        // Aplicamos los estilos y textos en un solo lugar para no repetir codigo en los condicionales
         this.panelAlerta.innerText = infoAlerta.texto;
         this.panelAlerta.style.color = infoAlerta.color;
         this.panelAlerta.style.background = infoAlerta.bg;
     }
 
+    /**
+     * Dirigimos el proceso de dibujo dependiendo del modo de visualizacion.
+     * @param {Object} modelo - El estado logico y visual del simulador.
+     */
     dibujar(modelo) {
-        // dirigimos el pincel hacia el grafico correcto segun el modo que seleccionamos
+        // Dirigimos el pincel hacia el grafico correcto segun el modo que seleccionamos
         const { width: w, height: h } = this.canvas;
         this.ctx.clearRect(0, 0, w, h);
         if (modelo.modoVista === 'diagrama') {
@@ -185,30 +208,36 @@ export class VistaOhm {
         }
     }
 
+    /**
+     * Dibujamos la escena interactiva para la carga del celular.
+     * @param {Object} modelo - El modelo con los parametros de carga.
+     * @param {number} w - Ancho del lienzo.
+     * @param {number} h - Alto del lienzo.
+     */
     dibujarEscenaCelular(modelo, w, h) {
         const cx = w / 2; const cy = h / 2; const ctx = this.ctx;
 
-        // pintamos la foto real de fondo si confirmamos que ya se descargo en el navegador
+        // Pintamos la foto real de fondo si confirmamos que ya se descargo en el navegador
         if (this.imgFondo.complete && this.imgFondo.naturalWidth !== 0) {
             ctx.drawImage(this.imgFondo, 0, 0, w, h);
         }
 
-        // construimos un cubo blanco que simula nuestro cargador conectado a la pared
+        // Construimos un cubo blanco que simula nuestro cargador conectado a la pared
         ctx.fillStyle = '#E2E8F0'; ctx.fillRect(30, 30, 60, 60);
         ctx.fillStyle = '#14151C'; ctx.fillRect(40, 50, 15, 5); ctx.fillRect(40, 65, 15, 5);
         ctx.fillStyle = 'var(--accent)'; ctx.font = 'bold 13px sans-serif'; ctx.fillText(`${modelo.voltaje}V / ${modelo.limitePotencia}W`, 35, 105);
 
-        // trazamos un cable curvo que cuelgue del cargador y viaje hasta nuestro telefono
+        // Trazamos un cable curvo que cuelgue del cargador y viaje hasta nuestro telefono
         ctx.beginPath(); ctx.moveTo(90, 60); ctx.bezierCurveTo(90, cy + 50, cx - 50, cy + 50, cx + 50, cy + 50);
         ctx.strokeStyle = '#2D313F'; ctx.lineWidth = 6; ctx.stroke();
 
-        // verificamos si sobrevivimos a la carga para empezar a llenar nuestra pila de manera animada
+        // Verificamos si sobrevivimos a la carga para empezar a llenar nuestra pila de manera animada
         if (modelo.estadoCelular !== 'quemado') {
             this.bateriaCelular += (modelo.estadoCelular === 'rapido' ? 1.5 : 0.3);
             if (this.bateriaCelular > 100) this.bateriaCelular = 0;
         }
 
-        // delegamos el dibujo preciso del celular a nuestro archivo especializado pasandole el porcentaje
+        // Delegamos el dibujo preciso del celular a nuestro archivo especializado pasandole el porcentaje
         RenderizadorCelular.dibujar(ctx, cx + 50, cy - 20, modelo.celularSeleccionado.id, modelo.estadoCelular, this.bateriaCelular, this.humoObj, modelo);
     }
 }

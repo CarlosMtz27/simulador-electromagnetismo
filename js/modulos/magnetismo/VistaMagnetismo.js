@@ -1,6 +1,17 @@
 import { DiccionarioMagnetismo } from './DiccionarioMagnetismo.js';
 
+/**
+ * Clase VistaMagnetismo
+ * Nos encargamos de construir y gestionar la interfaz grafica del modulo
+ * de magnetismo, enlazando los controles del usuario con el lienzo de dibujo.
+ */
 export class VistaMagnetismo {
+    /**
+     * Inicializamos la vista, preparamos las referencias del DOM y 
+     * configuramos las variables iniciales para la animacion.
+     * 
+     * @param {HTMLElement} contenedor - El elemento base donde inyectaremos la vista.
+     */
     constructor(contenedor) {
         this.contenedor = contenedor;
         this.renderizarPlantilla();
@@ -8,7 +19,7 @@ export class VistaMagnetismo {
         this.canvas = document.getElementById('canvas-magnetismo');
         this.ctx = this.canvas.getContext('2d');
         
-        // Referencias de UI
+        // Capturamos las referencias principales de la interfaz de usuario
         this.sliderCorriente = document.getElementById('slider-corriente');
         this.valCorriente = document.getElementById('val-corriente');
         this.sliderFuerzaIman = document.getElementById('slider-fuerza-iman');
@@ -22,7 +33,7 @@ export class VistaMagnetismo {
         this.panelMsj = document.getElementById('panel-teoria');
         this.valFuerzaLorentz = document.getElementById('val-fuerza-lorentz');
         
-        // Referencias UI Bomba
+        // Capturamos las referencias de la interfaz para el modo de la bomba termodinamica
         this.panelLorentz = document.getElementById('panel-lorentz');
         this.panelBomba = document.getElementById('panel-bomba');
         this.badgeLorentz = document.getElementById('badge-lorentz');
@@ -41,6 +52,13 @@ export class VistaMagnetismo {
         this.estadoAlarma = document.getElementById('estado-alarma');
         this.alarmaSpacer = document.getElementById('alarma-spacer');
 
+        this.indPe = document.getElementById('ind-pe');
+        this.indPm = document.getElementById('ind-pm');
+        this.indEta = document.getElementById('ind-eta');
+        this.indTtf = document.getElementById('ind-ttf');
+        this.valZonaEstado = document.getElementById('val-zona-estado');
+        this.barZonaOperacion = document.getElementById('bar-zona-operacion');
+
         this.particulasAgua = Array.from({length: 150}, () => ({
             x: 0, y: 0, activo: false,
             velY: Math.random() * 2 + 2,
@@ -50,6 +68,10 @@ export class VistaMagnetismo {
         this.ajustarCanvas();
     }
 
+    /**
+     * Inyectamos la estructura HTML dinamica que conforma los paneles de control,
+     * el lienzo de dibujo y las lecturas de telemetria en vivo.
+     */
     renderizarPlantilla() {
         this.contenedor.innerHTML = `
             <div class="module-container">
@@ -138,22 +160,50 @@ export class VistaMagnetismo {
                         </div>
 
                         <h3 style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 10px; text-transform: uppercase;">Telemetría en Vivo</h3>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;">
-                            <div style="background: var(--bg-base); padding: 10px; border-radius: 6px; border: 1px solid var(--border-color); text-align: center;">
+                        
+                        <!-- NUEVO: Zona de Operación -->
+                        <div style="margin-bottom: 15px; background: rgba(255,255,255,0.02); padding: 10px; border-radius: 8px; border: 1px solid var(--border-color);">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                <span style="color: var(--text-secondary); font-size: 0.75rem;">ZONA DE OPERACIÓN (ESTRÉS TÉRMICO)</span>
+                                <span id="val-zona-estado" style="color: #00FF00; font-size: 0.75rem; font-weight: bold;">NORMAL</span>
+                            </div>
+                            <div style="width: 100%; background: rgba(255,255,255,0.1); border-radius: 4px; height: 8px; overflow: hidden;">
+                                <div id="bar-zona-operacion" style="width: 0%; height: 100%; background: #00FF00; transition: width 0.3s, background 0.3s;"></div>
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 20px;">
+                            <div style="background: var(--bg-base); padding: 8px; border-radius: 6px; border: 1px solid var(--border-color); text-align: center;">
+                                <span style="font-size: 0.65rem; color: var(--text-secondary);">POTENCIA ELÉCTRICA</span>
+                                <div style="font-size: 1.1rem; color: #E94B7A; font-weight: bold; font-family: monospace;" id="ind-pe">0.0 <span style="font-size: 0.7rem; color: var(--text-secondary);">W</span></div>
+                            </div>
+                            <div style="background: var(--bg-base); padding: 8px; border-radius: 6px; border: 1px solid var(--border-color); text-align: center;">
+                                <span style="font-size: 0.65rem; color: var(--text-secondary);">POTENCIA MECÁNICA</span>
+                                <div style="font-size: 1.1rem; color: #34D399; font-weight: bold; font-family: monospace;" id="ind-pm">0.0 <span style="font-size: 0.7rem; color: var(--text-secondary);">W</span></div>
+                            </div>
+                            <div style="background: var(--bg-base); padding: 8px; border-radius: 6px; border: 1px solid var(--border-color); text-align: center;">
+                                <span style="font-size: 0.65rem; color: var(--text-secondary);">EFICIENCIA (η)</span>
+                                <div style="font-size: 1.1rem; color: #FFBF00; font-weight: bold; font-family: monospace;" id="ind-eta">0 <span style="font-size: 0.7rem; color: var(--text-secondary);">%</span></div>
+                            </div>
+                            <div style="background: var(--bg-base); padding: 8px; border-radius: 6px; border: 1px solid var(--border-color); text-align: center;">
+                                <span style="font-size: 0.65rem; color: var(--text-secondary);">TIEMPO PARA FALLA</span>
+                                <div style="font-size: 1.1rem; color: #A0AEC0; font-weight: bold; font-family: monospace;" id="ind-ttf">-- <span style="font-size: 0.7rem; color: var(--text-secondary);">s</span></div>
+                            </div>
+                            <div style="background: var(--bg-base); padding: 8px; border-radius: 6px; border: 1px solid var(--border-color); text-align: center;">
                                 <span style="font-size: 0.65rem; color: var(--text-secondary);">VELOCIDAD ROTOR</span>
-                                <div style="font-size: 1.2rem; color: #60A5FA; font-weight: bold; font-family: monospace;" id="ind-rpm">0 <span style="font-size: 0.7rem; color: var(--text-secondary);">RPM</span></div>
+                                <div style="font-size: 1.1rem; color: #60A5FA; font-weight: bold; font-family: monospace;" id="ind-rpm">0 <span style="font-size: 0.7rem; color: var(--text-secondary);">RPM</span></div>
                             </div>
-                            <div style="background: var(--bg-base); padding: 10px; border-radius: 6px; border: 1px solid var(--border-color); text-align: center;">
+                            <div style="background: var(--bg-base); padding: 8px; border-radius: 6px; border: 1px solid var(--border-color); text-align: center;">
                                 <span style="font-size: 0.65rem; color: var(--text-secondary);">CORRIENTE (A)</span>
-                                <div style="font-size: 1.2rem; color: var(--accent); font-weight: bold; font-family: monospace;" id="ind-corriente-bomba">0.0 <span style="font-size: 0.7rem; color: var(--text-secondary);">A</span></div>
+                                <div style="font-size: 1.1rem; color: var(--accent); font-weight: bold; font-family: monospace;" id="ind-corriente-bomba">0.0 <span style="font-size: 0.7rem; color: var(--text-secondary);">A</span></div>
                             </div>
-                            <div style="background: var(--bg-base); padding: 10px; border-radius: 6px; border: 1px solid var(--border-color); text-align: center;">
+                            <div style="background: var(--bg-base); padding: 8px; border-radius: 6px; border: 1px solid var(--border-color); text-align: center;">
                                 <span style="font-size: 0.65rem; color: var(--text-secondary);">CAUDAL DE SALIDA</span>
-                                <div style="font-size: 1.2rem; color: #34D399; font-weight: bold; font-family: monospace;" id="ind-caudal">0.0 <span style="font-size: 0.7rem; color: var(--text-secondary);">L/min</span></div>
+                                <div style="font-size: 1.1rem; color: #34D399; font-weight: bold; font-family: monospace;" id="ind-caudal">0.0 <span style="font-size: 0.7rem; color: var(--text-secondary);">L/min</span></div>
                             </div>
-                            <div style="background: var(--bg-base); padding: 10px; border-radius: 6px; border: 1px solid var(--border-color); text-align: center;">
+                            <div style="background: var(--bg-base); padding: 8px; border-radius: 6px; border: 1px solid var(--border-color); text-align: center;">
                                 <span style="font-size: 0.65rem; color: var(--text-secondary);">TEMPERATURA NÚCLEO</span>
-                                <div style="font-size: 1.2rem; font-weight: bold; font-family: monospace;" id="ind-temp">25.0 <span style="font-size: 0.7rem; color: var(--text-secondary);">°C</span></div>
+                                <div style="font-size: 1.1rem; font-weight: bold; font-family: monospace;" id="ind-temp">25.0 <span style="font-size: 0.7rem; color: var(--text-secondary);">°C</span></div>
                             </div>
                         </div>
 
@@ -167,12 +217,25 @@ export class VistaMagnetismo {
         `;
     }
 
+    /**
+     * Ajustamos dinamicamente las dimensiones de nuestro lienzo de dibujo
+     * para que ocupe correctamente el espacio de su contenedor.
+     */
     ajustarCanvas() {
         const p = this.canvas.parentElement;
         this.canvas.width = p.clientWidth;
         this.canvas.height = 550;
     }
 
+    /**
+     * Hacemos visible el boton de inspeccion interna cuando el cursor 
+     * se encuentra sobre el motor en la pantalla.
+     * 
+     * @param {number} xMotor - Posicion X central del motor.
+     * @param {number} yBase - Posicion Y de la base del motor.
+     * @param {number} w - Ancho del lienzo.
+     * @param {number} h - Alto del lienzo.
+     */
     mostrarBotonZoom(xMotor, yBase, w, h) {
         this.btnZoom.style.display = 'block';
         this.btnZoom.style.left = `${(xMotor / w) * 100}%`;
@@ -181,10 +244,19 @@ export class VistaMagnetismo {
         this.btnZoom.style.transform = 'translateX(-50%)';
     }
 
+    /**
+     * Ocultamos el boton de inspeccion interna cuando el cursor se aleja del motor.
+     */
     ocultarBotonZoom() {
         this.btnZoom.style.display = 'none';
     }
 
+    /**
+     * Refrescamos todos los elementos de la interfaz de usuario con los 
+     * calculos fisicos y termodinamicos mas recientes del modelo.
+     * 
+     * @param {Object} modelo - El estado logico y fisico actual del sistema.
+     */
     actualizarUI(modelo) {
         if (modelo.modoVista === 'diagrama') {
             this.panelLorentz.style.display = 'block';
@@ -220,6 +292,40 @@ export class VistaMagnetismo {
             this.canvas.style.background = '#0a0c10';
 
             this.valVoltajeBomba.innerText = `${modelo.voltaje} V`;
+
+            // Escribimos las nuevas metricas de potencia
+            this.indPe.innerText = (modelo.potenciaElectrica || 0).toFixed(1);
+            this.indPm.innerText = (modelo.potenciaMecanica || 0).toFixed(1);
+            this.indEta.innerText = (modelo.eficiencia || 0).toFixed(1);
+
+            if (modelo.estadoSistema === 'sobrevoltaje') {
+                this.indTtf.innerText = (modelo.tiempoFalla || 0).toFixed(1);
+                this.indTtf.style.color = '#FF3333';
+            } else if (modelo.estadoSistema === 'quemado') {
+                this.indTtf.innerText = '0.0';
+                this.indTtf.style.color = 'var(--text-secondary)';
+            } else {
+                this.indTtf.innerText = '--';
+                this.indTtf.style.color = 'var(--text-secondary)';
+            }
+
+            // Configuramos la barra visual para la zona de operacion termica
+            const pctVoltaje = Math.min((modelo.voltaje / 60) * 100, 100);
+            this.barZonaOperacion.style.width = `${pctVoltaje}%`;
+            
+            if (modelo.voltaje <= 30) {
+                this.barZonaOperacion.style.background = '#00FF00';
+                this.valZonaEstado.innerText = 'NORMAL (0-30V)';
+                this.valZonaEstado.style.color = '#00FF00';
+            } else if (modelo.voltaje <= 48) {
+                this.barZonaOperacion.style.background = '#FFBF00';
+                this.valZonaEstado.innerText = 'ESTRÉS TÉRMICO (30-48V)';
+                this.valZonaEstado.style.color = '#FFBF00';
+            } else {
+                this.barZonaOperacion.style.background = '#FF3333';
+                this.valZonaEstado.innerText = 'FALLA INMINENTE (>48V)';
+                this.valZonaEstado.style.color = '#FF3333';
+            }
 
             this.indRPM.innerText = Math.floor(modelo.rpm);
             this.indCorrienteBomba.innerText = modelo.corrienteBomba.toFixed(1);

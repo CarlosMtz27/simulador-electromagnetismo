@@ -2,15 +2,25 @@ import { DiccionarioCircuitos } from './DiccionarioCircuitos.js';
 import { RenderizadorDiagrama } from './renderizadores/Diagrama.js';
 import { RenderizadorMundoReal } from './renderizadores/MundoReal.js';
 
+/**
+ * Clase VistaCircuitos
+ * Gestionamos toda la interfaz grafica del modulo de circuitos.
+ * Nos encargamos de inyectar el HTML, capturar las referencias del DOM
+ * y dirigir el dibujado en el Canvas segun el estado del modelo.
+ */
 export class VistaCircuitos {
+    /**
+     * Inicializamos y montamos la base visual completa para nuestro simulador interactivo.
+     * @param {HTMLElement} contenedor - El elemento DOM donde inyectaremos la aplicacion.
+     */
     constructor(contenedor) {
-        // creamos y montamos la base visual completa para nuestro simulador interactivo
+        // Creamos y montamos la base visual completa para nuestro simulador interactivo
         this.contenedor = contenedor;
         this.renderizarPlantilla();
         this.canvas = document.getElementById('canvas-circuitos');
         this.ctx = this.canvas.getContext('2d');
         
-        // enlazamos las referencias en el dom para todos los paneles de mando y controles
+        // Enlazamos las referencias en el DOM para todos los paneles de mando y controles
         this.btnSerie = document.getElementById('btn-serie');
         this.btnParalelo = document.getElementById('btn-paralelo');
         this.btnMixto = document.getElementById('btn-mixto');
@@ -24,7 +34,8 @@ export class VistaCircuitos {
         this.panelValoresResistencias = document.getElementById('panel-valores-resistencias');
         
         this.sliderVoltaje = document.getElementById('slider-voltaje');
-        this.valVoltaje = document.getElementById('val-voltaje');
+        this.inputVoltaje  = document.getElementById('input-voltaje');
+        this.valVoltaje    = document.getElementById('val-voltaje');
 
         this.btnModoMundo = document.getElementById('btn-modo-mundo');
         this.panelFallaMundo = document.getElementById('panel-falla-mundo');
@@ -33,9 +44,21 @@ export class VistaCircuitos {
         this.btnToggleMixto = document.getElementById('btn-toggle-mixto');
         this.btnReparar = document.getElementById('btn-reparar');
 
-        // tomamos las etiquetas donde imprimimos nuestros datos finales
+        // Panel de resistencias individuales en Mundo Real
+        this.panelResistenciasMundo = document.getElementById('panel-resistencias-mundo');
+        this.gridResistenciasMundo  = document.getElementById('grid-resistencias-mundo');
+
+        // Panel de costos mensuales (CFE)
+        this.panelCostoMundo = document.getElementById('panel-costo-mundo');
+        this.inputHorasUso = document.getElementById('input-horas-uso');
+        this.valCostoMensual = document.getElementById('val-costo-mensual');
+
+        // Tomamos las etiquetas donde imprimiremos nuestros datos finales
         this.valReq = document.getElementById('val-req');
         this.valItotal = document.getElementById('val-itotal');
+        this.valPtotal = document.getElementById('val-ptotal');
+        this.valBreakerPct = document.getElementById('val-breaker-pct');
+        this.barBreaker = document.getElementById('bar-breaker');
         this.panelTitulo = document.getElementById('panel-titulo');
         this.panelMsj = document.getElementById('panel-msj');
         this.estadoAlarma = document.getElementById('estado-alarma');
@@ -50,8 +73,12 @@ export class VistaCircuitos {
         this.ajustarCanvas();
     }
 
+    /**
+     * Inyectamos la estructura HTML principal del simulador dentro del contenedor.
+     * Definimos los paneles, botones, deslizadores y el canvas.
+     */
     renderizarPlantilla() {
-        // inyectamos en el documento html puro todas las cajas de diseno visual y herramientas
+        // Inyectamos en el documento HTML puro todas las cajas de diseno visual y herramientas
         this.contenedor.innerHTML = `
             <div class="module-container" style="gap: 1rem; grid-template-columns: 1fr 400px;">
                 <div class="canvas-panel" style="flex-direction: column;">
@@ -94,9 +121,19 @@ export class VistaCircuitos {
                         <button id="btn-mixto" style="flex: 1; font-size: 0.8rem; padding: 0.8rem 0.2rem; background: transparent; border: 1px solid var(--border-color); color: var(--text-primary); border-radius: 4px; cursor: pointer;">Mixto</button>
                     </div>
 
+                    <!-- Voltaje: slider e input numerico sincronizados -->
                     <div id="panel-slider-voltaje" style="margin-bottom: 1rem;">
-                        <label style="display: flex; justify-content: space-between; color: var(--text-secondary); margin-bottom: 0.5rem; font-size: 0.85rem;">
-                            <span>Voltaje de Fuente (V)</span><span id="val-voltaje" style="color: var(--text-primary); font-weight: bold;">120 V</span>
+                        <label style="display: flex; justify-content: space-between; align-items: center; color: var(--text-secondary); margin-bottom: 0.5rem; font-size: 0.85rem;">
+                            <span>Voltaje de Fuente (V)</span>
+                            <div style="display: flex; align-items: center; gap: 5px;">
+                                <input type="number" id="input-voltaje"
+                                       min="10" max="240" step="10" value="120"
+                                       style="width: 62px; background: var(--bg-base); color: var(--text-primary);
+                                              border: 1px solid var(--border-color); border-radius: 4px;
+                                              padding: 2px 4px; text-align: center; font-weight: bold; font-size: 0.85rem;
+                                              outline: none;">
+                                <span id="val-voltaje" style="color: var(--text-primary); font-weight: bold; font-size: 0.85rem;">V</span>
+                            </div>
                         </label>
                         <input type="range" id="slider-voltaje" min="10" max="240" step="10" value="120" style="width: 100%; accent-color: var(--accent);">
                     </div>
@@ -127,20 +164,66 @@ export class VistaCircuitos {
                         <div id="val-secuencia" style="color: var(--accent); font-weight: bold; font-size: 0.8rem; text-align: center; word-break: break-word; margin-top: 10px; min-height: 1.2em;">...</div>
                     </div>
 
+                    <!-- Panel de resistencias en modo diagrama -->
                     <div id="panel-valores-resistencias" style="margin-bottom: 1rem; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px; border: 1px solid var(--border-color); display: none;"></div>
 
-                    <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
-                        <div style="flex: 1; background: var(--bg-base); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color); text-align: center;">
-                            <span style="color: var(--text-secondary); font-size: 0.75rem;">R. EQUIVALENTE</span>
-                            <div style="font-size: 1.5rem; color: var(--text-primary); font-weight: bold; margin-top: 0.5rem;">
-                                <span id="val-req">240.0</span> <span style="font-size: 1rem;">Ω</span>
+                    <!-- Panel de resistencias por habitacion (Mundo Real) -->
+                    <div id="panel-resistencias-mundo"
+                         style="display: none; margin-bottom: 1rem; background: rgba(0,0,0,0.2);
+                                padding: 10px; border-radius: 6px; border: 1px solid var(--border-color);">
+                        <label style="display: block; color: var(--text-secondary); margin-bottom: 8px;
+                                      font-size: 0.78rem; text-transform: uppercase; letter-spacing: 1px;">
+                            Resistencia por Habitación (Ω)
+                            <span style="color: var(--text-secondary); font-weight: normal; font-size: 0.7rem;
+                                         display: block; margin-top: 2px; text-transform: none; letter-spacing: 0;">
+                                Tip: 60 W → 254 Ω · 100 W → 152 Ω · LED 10 W → 1524 Ω
+                            </span>
+                        </label>
+                        <div id="grid-resistencias-mundo"
+                             style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+                        </div>
+                    </div>
+
+                    <!-- Panel de Costo mensual (Mundo Real) -->
+                    <div id="panel-costo-mundo" style="display: none; margin-bottom: 1rem; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px; border: 1px solid var(--border-color);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <label style="color: var(--text-secondary); font-size: 0.78rem; text-transform: uppercase;">Uso diario (Horas):</label>
+                            <input type="number" id="input-horas-uso" min="1" max="24" step="1" value="8" style="width: 60px; background: var(--bg-base); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 4px; padding: 4px; text-align: center; outline: none; font-weight: bold;">
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="color: var(--text-secondary); font-size: 0.78rem; text-transform: uppercase;">Costo Mensual (CFE a $2.80/kWh):</span>
+                            <span id="val-costo-mensual" style="color: #00FF00; font-size: 1.1rem; font-weight: bold;">$0.00</span>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+                        <div style="flex: 1; background: var(--bg-base); padding: 0.8rem; border-radius: 8px; border: 1px solid var(--border-color); text-align: center;">
+                            <span style="color: var(--text-secondary); font-size: 0.7rem;">R. EQUIVALENTE</span>
+                            <div style="font-size: 1.2rem; color: var(--text-primary); font-weight: bold; margin-top: 0.3rem;">
+                                <span id="val-req">240.0</span> <span style="font-size: 0.8rem;">Ω</span>
                             </div>
                         </div>
-                        <div style="flex: 1; background: var(--bg-base); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color); text-align: center;">
-                            <span style="color: var(--text-secondary); font-size: 0.75rem;">CORRIENTE (I)</span>
-                            <div style="font-size: 1.5rem; color: var(--accent); font-weight: bold; margin-top: 0.5rem;">
-                                <span id="val-itotal">0.5</span> <span style="font-size: 1rem;">A</span>
+                        <div style="flex: 1; background: var(--bg-base); padding: 0.8rem; border-radius: 8px; border: 1px solid var(--border-color); text-align: center;">
+                            <span style="color: var(--text-secondary); font-size: 0.7rem;">CORRIENTE (I)</span>
+                            <div style="font-size: 1.2rem; color: var(--accent); font-weight: bold; margin-top: 0.3rem;">
+                                <span id="val-itotal">0.5</span> <span style="font-size: 0.8rem;">A</span>
                             </div>
+                        </div>
+                        <div style="flex: 1; background: var(--bg-base); padding: 0.8rem; border-radius: 8px; border: 1px solid var(--border-color); text-align: center;">
+                            <span style="color: var(--text-secondary); font-size: 0.7rem;">POTENCIA (P)</span>
+                            <div style="font-size: 1.2rem; color: #FFBF00; font-weight: bold; margin-top: 0.3rem;">
+                                <span id="val-ptotal">60.0</span> <span style="font-size: 0.8rem;">W</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom: 1rem; background: var(--bg-base); padding: 10px; border-radius: 8px; border: 1px solid var(--border-color);">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                            <span style="color: var(--text-secondary); font-size: 0.75rem;">CARGA DEL BREAKER (15A MÁX)</span>
+                            <span id="val-breaker-pct" style="color: var(--text-primary); font-size: 0.75rem; font-weight: bold;">0%</span>
+                        </div>
+                        <div style="width: 100%; background: rgba(255,255,255,0.1); border-radius: 4px; height: 8px; overflow: hidden;">
+                            <div id="bar-breaker" style="width: 0%; height: 100%; background: #00FF00; transition: width 0.3s, background 0.3s;"></div>
                         </div>
                     </div>
 
@@ -153,18 +236,49 @@ export class VistaCircuitos {
         `;
     }
 
-    ajustarCanvas() { this.canvas.width = this.canvas.parentElement.clientWidth; this.canvas.height = 400; }
+    /**
+     * Ajustamos dinamicamente el tamano del lienzo para que se adapte a su contenedor.
+     */
+    ajustarCanvas() { 
+        this.canvas.width = this.canvas.parentElement.clientWidth; 
+        this.canvas.height = 400; 
+    }
 
+    /**
+     * Refrescamos todos los elementos de la interfaz de usuario con los datos mas recientes.
+     * @param {Object} modelo - El estado fisico y logico del circuito.
+     */
     actualizarUI(modelo) {
-        // escribimos en pantalla las medidas fisicas extraidas de los calculos del sistema
+        // Escribimos en pantalla las medidas fisicas extraidas de los calculos del sistema
         this.valReq.innerText = modelo.resultados.req === Infinity ? '∞' : modelo.resultados.req.toFixed(1);
         this.valItotal.innerText = modelo.resultados.iTotal.toFixed(2);
+        
+        const pTotal = modelo.voltaje * modelo.resultados.iTotal;
+        this.valPtotal.innerText = pTotal.toFixed(1);
+
+        const kWh = (pTotal * modelo.horasUsoDiario * 30) / 1000;
+        const costo = kWh * modelo.tarifaKWh;
+        this.valCostoMensual.innerText = '$' + costo.toFixed(2) + ' MXN';
+        if (document.activeElement !== this.inputHorasUso) {
+            this.inputHorasUso.value = modelo.horasUsoDiario;
+        }
+
+        const breakerPct = Math.min((modelo.resultados.iTotal / 15) * 100, 100);
+        this.valBreakerPct.innerText = breakerPct.toFixed(1) + '%';
+        this.barBreaker.style.width = breakerPct + '%';
+        if (breakerPct < 50) this.barBreaker.style.background = '#00FF00';
+        else if (breakerPct < 85) this.barBreaker.style.background = '#FFBF00';
+        else this.barBreaker.style.background = '#FF3333';
+        
         document.getElementById('val-serie').innerText = modelo.numSerie;
         document.getElementById('val-paralelo').innerText = modelo.numParalelo;
-        this.valVoltaje.innerText = modelo.voltaje + ' V';
-        this.sliderVoltaje.value = modelo.voltaje;
 
-        // iluminamos el boton principal dependiendo de la topologia que estamos trabajando
+        // Sincronizamos el input numerico y el slider de voltaje
+        if (document.activeElement !== this.inputVoltaje) this.inputVoltaje.value = modelo.voltaje;
+        this.sliderVoltaje.value = modelo.voltaje;
+        this.valVoltaje.innerText = 'V';  // Dejamos la unidad fija; el valor ya va en el input
+
+        // Iluminamos el boton principal dependiendo de la topologia que estamos trabajando
         const btnInactivo = { background: 'transparent', color: 'var(--text-primary)' };
         const btnActivo = { background: 'var(--accent)', color: 'white' };
         Object.assign(this.btnSerie.style, modelo.topologia === 'serie' ? btnActivo : btnInactivo);
@@ -173,16 +287,20 @@ export class VistaCircuitos {
 
         const esMundo = modelo.modoVista === 'mundoReal';
 
-        // escondemos las herramientas matematicas y sliders cuando miramos el simulador realista de casa
+        // Escondemos las herramientas matematicas y sliders cuando miramos el simulador realista de la casa
         this.panelSlidersTopologia.style.display = (esMundo || modelo.topologia === 'mixto') ? 'none' : 'block';
         this.panelConstructorMixto.style.display = (!esMundo && modelo.topologia === 'mixto') ? 'block' : 'none';
         this.panelValoresResistencias.style.display = (!esMundo && modelo.resistencias.length > 0) ? 'block' : 'none';
+
+        // Panel de resistencias por habitacion (solo visible en Mundo Real)
+        this.panelResistenciasMundo.style.display = esMundo ? 'block' : 'none';
+        this.panelCostoMundo.style.display = esMundo ? 'block' : 'none';
+        if (esMundo) this.actualizarResistenciasMundo(modelo);
         
-        // nos aseguramos de mostrar el manejador exacto que rige la cantidad de focos correcta
         if (this.panelSliderSerie) this.panelSliderSerie.style.display = modelo.topologia === 'serie' ? 'block' : 'none';
         if (this.panelSliderParalelo) this.panelSliderParalelo.style.display = modelo.topologia === 'paralelo' ? 'block' : 'none';
         
-        // manejamos la disponibilidad del panel de reparacion o dano de dispositivos
+        // Manejamos la disponibilidad del panel de reparacion o dano de dispositivos
         this.panelFallaMundo.style.display = esMundo ? 'flex' : 'none';
         this.btnFalla.style.display = modelo.focoFundidoIndex === -1 ? 'block' : 'none';
         this.btnReparar.style.display = modelo.focoFundidoIndex !== -1 ? 'block' : 'none';
@@ -196,7 +314,6 @@ export class VistaCircuitos {
         }
 
         if (esMundo) {
-            // cambiamos los colores para integrarnos al modo ambiente oscuro en la casa
             this.btnModoMundo.innerText = 'Ver Diagrama Técnico';
             this.btnModoMundo.style.background = 'var(--accent)';
             this.btnModoMundo.style.color = 'white';
@@ -205,7 +322,6 @@ export class VistaCircuitos {
             this.canvas.style.backgroundSize = 'cover';
             this.canvas.style.backgroundPosition = 'center';
         } else {
-            // limpiamos la pantalla volviendo a la estetica plana de laboratorio tecnico
             this.btnModoMundo.innerText = 'Ver Mundo Real';
             this.btnModoMundo.style.background = 'var(--bg-panel-alt)';
             this.btnModoMundo.style.color = 'var(--accent)';
@@ -214,14 +330,12 @@ export class VistaCircuitos {
             this.actualizarValoresResistencias(modelo);
         }
 
-        // listamos en modo texto como queda configurada nuestra serie hibrida
         const mapaNombres = { 'S_top': 'S. Arriba ⬆', 'S_bot': 'S. Abajo ⬇', 'P': 'Paralelo ↕' };
         this.valSecuencia.innerText = modelo.secuenciaMixta.map(c => mapaNombres[c]).join(' ➔ ') || 'Circuito Vacío. ¡Añade un componente!';
 
         const textos = DiccionarioCircuitos.diagrama[modelo.topologia];
         this.panelTitulo.innerText = textos.titulo;
         
-        // unificamos la evaluacion de mensajes y alertas visuales para tener un flujo de control mas limpio
         if (modelo.estadoSistema === 'sobrecarga') {
             this.panelMsj.innerText = textos.analisis + " " + (textos.alertaCarga || '');
             this.estadoAlarma.style.display = 'block';
@@ -243,15 +357,99 @@ export class VistaCircuitos {
         }
     }
 
+    /**
+     * Renderizamos o actualizamos la cuadricula con un input numerico por habitacion.
+     * La primera vez construimos el HTML; en llamadas posteriores solo actualizamos valores
+     * si el input no esta siendo editado por el usuario en ese momento.
+     *
+     * Fisica detras de los valores: R = V^2 / P
+     *   - Foco  40 W / 127 V ->  403 Ohmios
+     *   - Foco  60 W / 127 V ->  268 Ohmios (valor por defecto)
+     *   - Foco 100 W / 127 V ->  161 Ohmios
+     *   - LED   10 W / 127 V -> 1613 Ohmios
+     * @param {Object} modelo - El estado actual del sistema.
+     */
+    actualizarResistenciasMundo(modelo) {
+        const nombres = [
+            'Hab. 1 ↖', 'Hab. 2 ↑', 'Hab. 3 ↗',
+            'Hab. 4 ↙', 'Hab. 5 ↓', 'Hab. 6 ↘'
+        ];
+
+        const inputs = this.gridResistenciasMundo.querySelectorAll('.input-res-mundo');
+
+        if (inputs.length !== 6) {
+            // Primera construccion o cambio de topologia
+            this.gridResistenciasMundo.innerHTML = nombres.map((nombre, i) => {
+                const val = modelo.resistencias[i] !== undefined
+                    ? modelo.resistencias[i].toFixed(0)
+                    : modelo.resistenciaBase;
+                return `
+                <div style="background: rgba(0,0,0,0.25); padding: 5px 6px; border-radius: 5px;
+                            border: 1px solid var(--border-color);">
+                    <span style="font-size: 0.68rem; color: var(--text-secondary); display: block;
+                                 margin-bottom: 3px; white-space: nowrap; overflow: hidden;
+                                 text-overflow: ellipsis;">${nombre}</span>
+                    <div style="display: flex; align-items: center; gap: 3px;">
+                        <input type="number"
+                               class="input-res-mundo"
+                               data-index="${i}"
+                               value="${val}"
+                               min="1" max="9999" step="1"
+                               style="flex: 1; width: 0; background: var(--bg-base);
+                                      color: var(--accent); border: 1px solid var(--border-color);
+                                      border-radius: 3px; padding: 3px 2px; text-align: center;
+                                      font-weight: bold; font-size: 0.82rem; outline: none;">
+                        <span style="font-size: 0.7rem; color: var(--text-secondary);">Ω</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-top: 5px; font-size: 0.7rem; font-weight: bold;">
+                        <span class="val-w-mundo">0.0 W</span>
+                        <span class="val-a-mundo">0.00 A</span>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        // Actualizamos los valores dinamicos de vatios y amperios
+        const currentInputs = this.gridResistenciasMundo.querySelectorAll('.input-res-mundo');
+        const valsW = this.gridResistenciasMundo.querySelectorAll('.val-w-mundo');
+        const valsA = this.gridResistenciasMundo.querySelectorAll('.val-a-mundo');
+
+        currentInputs.forEach((input, i) => {
+            if (document.activeElement !== input && modelo.resistencias[i] !== undefined) {
+                input.value = modelo.resistencias[i].toFixed(0);
+            }
+            
+            const estaFundido = modelo.focoFundidoIndex === i;
+            const r = estaFundido ? Infinity : modelo.resistencias[i];
+            const p = modelo.resultados.pMixto[i] || 0;
+            const a = (estaFundido || r === Infinity || p === 0) ? 0 : Math.sqrt(p / r);
+
+            valsW[i].innerText = p.toFixed(1) + ' W';
+            valsA[i].innerText = a.toFixed(2) + ' A';
+
+            if (estaFundido || p === 0) {
+                valsW[i].style.color = 'var(--text-secondary)';
+                valsA[i].style.color = 'var(--text-secondary)';
+            } else {
+                valsW[i].style.color = '#FFBF00';
+                valsA[i].style.color = 'var(--accent)';
+            }
+        });
+    }
+
+    /**
+     * Generamos de forma dinamica los deslizadores y cuadros de texto para
+     * modificar el valor de cada resistencia en el modo de diagrama tecnico.
+     * @param {Object} modelo - El estado actual del sistema.
+     */
     actualizarValoresResistencias(modelo) {
-        // generamos dinamica e individualmente las casillas para modificar cualquier resistencia del arreglo
+        // Generamos dinamica e individualmente las casillas para modificar cualquier resistencia del arreglo
         if (modelo.resistencias.length === 0) return;
         const currentInputs = this.panelValoresResistencias.querySelectorAll('.input-res');
         if (currentInputs.length !== modelo.resistencias.length || this.ultimaTopologia !== modelo.topologia) {
             this.ultimaTopologia = modelo.topologia;
             let html = '<label style="display: block; color: var(--text-secondary); margin-bottom: 0.5rem; font-size: 0.85rem; text-transform: uppercase;">Resistencias (Ω)</label><div style="display:flex; flex-direction:column; gap:0.5rem;">';
             
-            // construimos el HTML mediante map y join para evitar concatenaciones iterativas costosas
             html += modelo.resistencias.map((res, i) => {
                 let name = `R${i+1}`;
                 if (modelo.topologia === 'mixto') {
@@ -262,6 +460,7 @@ export class VistaCircuitos {
                             <span style="font-size:0.75rem; color:var(--text-secondary); width: 70px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${name}</span>
                             <input type="range" min="10" max="1000" step="1" class="slider-res" data-index="${i}" value="${res}" style="flex:1; accent-color: var(--accent);">
                             <input type="number" min="0.1" max="5000" step="0.1" class="input-res" data-index="${i}" value="${res}" style="width:60px; padding:4px; background:var(--bg-base); color:var(--text-primary); border:1px solid var(--border-color); border-radius:4px; text-align: center;">
+                            <span class="extra-info-res" style="width: 55px; font-size:0.75rem; font-weight: bold; text-align: right;"></span>
                         </div>`;
             }).join('');
             
@@ -276,15 +475,40 @@ export class VistaCircuitos {
                 if (document.activeElement !== slider) slider.value = modelo.resistencias[i];
             });
         }
+
+        const extraInfos = this.panelValoresResistencias.querySelectorAll('.extra-info-res');
+        extraInfos.forEach((span, i) => {
+            const estaFundido = modelo.focoFundidoIndex === i;
+            const r = estaFundido ? Infinity : modelo.resistencias[i];
+            const p = modelo.resultados.pMixto[i] || 0;
+            
+            if (modelo.topologia === 'serie') {
+                const v = estaFundido ? modelo.voltaje : Math.sqrt(p * r);
+                span.innerText = v.toFixed(1) + ' V';
+                span.style.color = '#00E5FF';
+            } else if (modelo.topologia === 'paralelo') {
+                const amp = estaFundido ? 0 : Math.sqrt(p / r);
+                span.innerText = amp.toFixed(2) + ' A';
+                span.style.color = 'var(--accent)';
+            } else {
+                const v = estaFundido ? 0 : Math.sqrt(p * r);
+                span.innerText = v.toFixed(1) + ' V';
+                span.style.color = '#00E5FF';
+            }
+        });
     }
 
+    /**
+     * Dirigimos el trafico visual evaluando que tipo de renderizador debemos invocar
+     * basandonos en el modo de vista seleccionado (tecnico o realista).
+     * @param {Object} modelo - El estado fisico a representar.
+     */
     dibujar(modelo) {
-        // dirigimos el trafico visual evaluando que tipo de renderizador invocar hoy
+        // Dirigimos el trafico visual evaluando que tipo de renderizador invocar hoy
         if (modelo.modoVista === 'diagrama') {
             RenderizadorDiagrama.dibujar(this.ctx, this.canvas.width, this.canvas.height, modelo, modelo.resultados, this.particulas);
         } else {
             RenderizadorMundoReal.dibujar(this.ctx, this.canvas.width, this.canvas.height, modelo, modelo.resultados, this.particulas);
-
         }
     }
 }

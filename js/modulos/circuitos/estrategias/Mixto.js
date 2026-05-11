@@ -1,7 +1,24 @@
 import { RenderizadorBase } from '../../../shared/RenderizadorBase.js';
 import { AnimadorElectrones } from '../../../shared/AnimadorElectrones.js';
 
+/**
+ * Clase EstrategiaMixto
+ * Nos encargamos de renderizar la representacion visual de un circuito mixto,
+ * combinando conexiones en serie y en paralelo segun la secuencia definida
+ * por el usuario en el modelo.
+ */
 export class EstrategiaMixto {
+    /**
+     * Dibujamos el circuito mixto en el lienzo, calculando dinamicamente
+     * las distancias, la ubicacion de cada nodo y animando el paso de los electrones.
+     * 
+     * @param {CanvasRenderingContext2D} ctx - El pincel del canvas.
+     * @param {number} w - Ancho del area de dibujo.
+     * @param {number} h - Alto del area de dibujo.
+     * @param {Object} modelo - El estado fisico actual del sistema.
+     * @param {Object} resultados - Los calculos matematicos de potencia y corriente.
+     * @param {Array} particulas - La lista de electrones para animar.
+     */
     static dibujar(ctx, w, h, modelo, resultados, particulas) {
         // preparamos las medidas iniciales donde encajaremos nuestro circuito mixto
         const margen = 60; const x0 = margen; const y0 = margen;
@@ -45,6 +62,9 @@ export class EstrategiaMixto {
         ctx.stroke();
         ctx.shadowBlur = 0; 
         
+        // limpiamos el cable donde va la bateria para que parezca conectada a los polos
+        ctx.clearRect(x0 - 20, y0 + altoLazo / 2 - 35, 40, 70);
+
         // plantamos nuestra fuente de energia principal
         RenderizadorBase.dibujarBateria(ctx, x0, y0 + altoLazo/2, modelo.voltaje, modelo.estadoSistema);
         

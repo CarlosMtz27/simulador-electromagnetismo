@@ -1,78 +1,96 @@
 import { Tema } from '../../../shared/Tema.js';
 
+/**
+ * Clase RenderizadorCelular
+ * Proporcionamos las rutinas de dibujo para representar distintos modelos
+ * de telefonos celulares, sus interfaces de carga y efectos visuales de dano termico.
+ */
 export class RenderizadorCelular {
+    /**
+     * Dibujamos el telefono celular completo en el canvas, incluyendo su chasis,
+     * pantalla, camaras y el panel lateral de telemetria si se proporciona el modelo.
+     * 
+     * @param {CanvasRenderingContext2D} ctx - El pincel del canvas.
+     * @param {number} x - Posicion horizontal de origen.
+     * @param {number} y - Posicion vertical de origen.
+     * @param {number|string} idCelular - Identificador del modelo de telefono (0 a 3).
+     * @param {string} estado - Estado de carga ('normal', 'rapido', 'quemado').
+     * @param {number} bateria - Porcentaje de bateria actual.
+     * @param {Object} humoObj - Objeto con el estado de la animacion de humo y chispas.
+     * @param {Object} [modelo=null] - Referencia al modelo logico para extraer telemetria real.
+     */
     static dibujar(ctx, x, y, idCelular, estado, bateria, humoObj, modelo = null) {
-        // guardamos la configuracion del lienzo y movemos nuestro punto cero al centro del dibujo para facilitar las matematicas
+        // Guardamos la configuracion del lienzo y movemos el punto cero al centro del dibujo para facilitar las matematicas
         ctx.save();
         ctx.translate(x, y); 
         
-        // establecemos las medidas generales que tendra el dispositivo en pantalla
+        // Establecemos las medidas generales que tendra el dispositivo en pantalla
         const ancho = 90;
         const alto = 180;
         const cx = -ancho / 2;
         const cy = -alto / 2;
 
-        // evaluamos que modelo de celular eligio el usuario para trazar sus detalles especificos
+        // Evaluamos que modelo de celular eligio el usuario para trazar sus detalles especificos
         switch (parseInt(idCelular)) {
             case 0: 
-                // dibujamos el chasis metalico clasico del primer modelo
+                // Dibujamos el chasis metalico clasico del primer modelo
                 this.dibujarChasis(ctx, cx, cy, ancho, alto, 12, '#FFFFFF'); 
-                // colocamos el cristal frontal negro
+                // Colocamos el cristal frontal negro
                 ctx.fillStyle = '#0a0a0c'; ctx.beginPath(); ctx.roundRect(cx + 2, cy + 2, ancho - 4, alto - 4, 10); ctx.fill();
-                // marcamos la zona de la pantalla respetando los bordes anchos arriba y abajo
+                // Marcamos la zona de la pantalla respetando los bordes anchos arriba y abajo
                 ctx.fillStyle = '#000000'; ctx.fillRect(cx + 4, cy + 28, ancho - 8, alto - 56);
-                // anadimos la camara frontal justo en la parte de arriba
+                // Anadimos la camara frontal justo en la parte de arriba
                 ctx.fillStyle = '#222'; ctx.beginPath(); ctx.arc(0, cy + 10, 2.5, 0, Math.PI * 2); ctx.fill();
-                // detallamos la bocina del auricular
+                // Detallamos la bocina del auricular
                 ctx.fillStyle = '#1a1a1a'; ctx.beginPath(); ctx.roundRect(-8, cy + 16, 16, 3, 2); ctx.fill();
-                // dibujamos el boton de inicio circular con su cuadrito caracteristico adentro
+                // Dibujamos el boton de inicio circular con su cuadrito caracteristico adentro
                 ctx.strokeStyle = '#222'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(0, cy + alto - 14, 8, 0, Math.PI * 2); ctx.stroke();
                 ctx.strokeStyle = '#333'; ctx.lineWidth = 1; ctx.strokeRect(-2.5, cy + alto - 16.5, 5, 5);
                 break;
             case 1: 
-                // construimos el segundo modelo con una pantalla que abarca casi todo el frente
+                // Construimos el segundo modelo con una pantalla que abarca casi todo el frente
                 this.dibujarChasis(ctx, cx, cy, ancho, alto, 14, '#FFFFFF');
                 ctx.fillStyle = '#050505'; ctx.beginPath(); ctx.roundRect(cx + 4, cy + 4, ancho - 8, alto - 8, 12); ctx.fill(); 
-                // le ponemos la camara perforada flotando en la pantalla
+                // Le ponemos la camara perforada flotando en la pantalla
                 ctx.fillStyle = '#222'; ctx.beginPath(); ctx.arc(0, cy + 14, 2.5, 0, Math.PI * 2); ctx.fill(); 
                 break;
             case 2: 
-                // trazamos el tercer modelo con esquinas mas cuadradas y sin bordes
+                // Trazamos el tercer modelo con esquinas mas cuadradas y sin bordes
                 this.dibujarChasis(ctx, cx, cy, ancho, alto, 8, '#FFFFFF'); 
                 ctx.fillStyle = '#000000'; ctx.beginPath(); ctx.roundRect(cx + 2, cy + 2, ancho - 4, alto - 4, 6); ctx.fill(); 
-                // le ponemos una camara frontal muy pequena
+                // Le ponemos una camara frontal muy pequena
                 ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(0, cy + 10, 2, 0, Math.PI * 2); ctx.fill(); 
                 break;
             case 3: 
-                // armamos el ultimo modelo premium con pantalla curva a los lados
+                // Armamos el ultimo modelo premium con pantalla curva a los lados
                 this.dibujarChasis(ctx, cx, cy, ancho, alto, 12, '#FFFFFF');
                 ctx.fillStyle = '#050505'; ctx.beginPath(); ctx.roundRect(cx + 1, cy + 2, ancho - 2, alto - 4, 10); ctx.fill();
-                // pintamos unos brillos blancos en los costados para simular el cristal curvado
+                // Pintamos unos brillos blancos en los costados para simular el cristal curvado
                 ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)'; ctx.lineWidth = 2;
                 ctx.beginPath(); ctx.moveTo(cx + 4, cy + 10); ctx.lineTo(cx + 4, cy + alto - 10); ctx.stroke();
                 ctx.beginPath(); ctx.moveTo(cx + ancho - 4, cy + 10); ctx.lineTo(cx + ancho - 4, cy + alto - 10); ctx.stroke();
-                // agregamos su sensor fotografico superior
+                // Agregamos su sensor fotografico superior
                 ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(0, cy + 12, 2.5, 0, Math.PI * 2); ctx.fill();
                 break;
         }
 
-        // revisamos si la corriente destruyo el telefono
+        // Revisamos si la corriente destruyo el telefono
         if (estado === 'quemado') {
-            // simulamos los cristales rotos trazando lineas irregulares de color rojo vivo
+            // Simulamos los cristales rotos trazando lineas irregulares de color rojo vivo
             ctx.strokeStyle = '#E94B7A'; ctx.lineWidth = 1;
             ctx.beginPath(); ctx.moveTo(cx + 10, cy + 20); ctx.lineTo(cx + ancho - 10, cy + alto - 30); ctx.stroke();
             ctx.beginPath(); ctx.moveTo(cx + ancho - 20, cy + 10); ctx.lineTo(cx + 20, cy + alto - 20); ctx.stroke();
             ctx.beginPath(); ctx.moveTo(cx + 40, cy + alto / 2); ctx.lineTo(cx + ancho - 10, cy + alto / 2 + 20); ctx.stroke();
             
-            // invocamos nuestra animacion para que empiecen a salir chispas
+            // Invocamos la animacion para que empiecen a salir chispas
             this.animarHumoYFuego(ctx, 0, 0, humoObj);
         } 
         else {
-            // si el telefono esta a salvo, procedemos a mostrar su interfaz de carga normal
+            // Si el telefono esta a salvo, procedemos a mostrar su interfaz de carga normal
             this.dibujarInterfazCarga(ctx, 0, 0, bateria, estado, parseInt(idCelular));
         }
 
-        // --- PANEL DE TELEMETRÍA (DATOS FÍSICOS REALES) ---
+        // PANEL DE TELEMETRIA (DATOS FISICOS REALES)
         if (modelo) {
             const vCargador = modelo.voltaje;
             const pCargador = modelo.limitePotencia;
@@ -84,7 +102,7 @@ export class RenderizadorCelular {
             let protocolo = 'Ninguno';
             let resistenciaReq = 0;
 
-            // Investigacion: Los telefonos no toman mas potencia de la que pueden manejar,
+            //Los telefonos no toman mas potencia de la que pueden manejar,
             // excepto si hay un fallo de voltaje (quemado) donde hay cortocircuito (fuga termica).
             if (estado === 'quemado') {
                 potenciaReal = 0;
@@ -139,63 +157,94 @@ export class RenderizadorCelular {
             ctx.fillText(`Protocolo: ${protocolo}`, tx + 10, ty + 95);
         }
 
-        // restauramos las coordenadas originales del lienzo para no afectar a otros dibujos
+        // Restauramos las coordenadas originales del lienzo para no afectar a otros dibujos
         ctx.restore(); 
     }
 
+    /**
+     * Trazamos el contorno base o carcasa del dispositivo movil con bordes redondeados.
+     * 
+     * @param {CanvasRenderingContext2D} ctx - El pincel del canvas.
+     * @param {number} x - Coordenada X superior izquierda.
+     * @param {number} y - Coordenada Y superior izquierda.
+     * @param {number} w - Ancho total del chasis.
+     * @param {number} h - Alto total del chasis.
+     * @param {number} radio - Radio de curvatura de las esquinas.
+     * @param {string} color - Color de relleno de la carcasa.
+     */
     static dibujarChasis(ctx, x, y, w, h, radio, color) {
-        // generamos un rectangulo base con esquinas suavizadas que sirve como la carcasa del celular
+        // Generamos un rectangulo base con esquinas suavizadas que sirve como la carcasa del celular
         ctx.fillStyle = color;
         ctx.beginPath();
         ctx.roundRect(x, y, w, h, radio);
         ctx.fill();
-        // le anadimos un contorno exterior para darle mas forma
+        // Le anadimos un contorno exterior para darle mas forma
         ctx.strokeStyle = '#4A4A4A';
         ctx.lineWidth = 2;
         ctx.stroke();
     }
 
+    /**
+     * Dibujamos la pantalla de carga del telefono, mostrando el icono de la bateria,
+     * el porcentaje y los efectos de carga rapida si corresponde.
+     * 
+     * @param {CanvasRenderingContext2D} ctx - El pincel del canvas.
+     * @param {number} cx - Centro horizontal del telefono.
+     * @param {number} cy - Centro vertical del telefono.
+     * @param {number} bateria - Porcentaje de bateria a mostrar.
+     * @param {string} estado - Condicion actual de la carga.
+     * @param {number} idCelular - Modelo de telefono para aplicar estilos especiales.
+     */
     static dibujarInterfazCarga(ctx, cx, cy, bateria, estado, idCelular) {
-        // elegimos el color de la pila, verde si carga rapido o naranja si va muy lento
+        // Elegimos el color de la pila, verde si carga rapido o naranja si va muy lento
         const colorBat = estado === 'rapido' ? '#00FF00' : '#FFA500';
         
-        // trazamos el icono vacio de la bateria justo en el centro de la pantalla
+        // Trazamos el icono vacio de la bateria justo en el centro de la pantalla
         ctx.strokeStyle = 'white'; ctx.lineWidth = 1;
         ctx.strokeRect(-20, -10, 40, 20); 
         ctx.fillStyle = 'white'; ctx.fillRect(21, -4, 3, 8); 
         
-        // calculamos el ancho del color interno para simular como se va llenando la energia
+        // Calculamos el ancho del color interno para simular como se va llenando la energia
         ctx.fillStyle = colorBat;
         ctx.fillRect(-18, -8, (bateria / 100) * 36, 16);
 
-        // preparamos el pincel para escribir los porcentajes
+        // Preparamos el pincel para escribir los porcentajes
         ctx.fillStyle = 'white';
         ctx.font = '10px sans-serif';
         ctx.textAlign = 'center';
 
         if (idCelular === 3 && estado === 'rapido') {
-            // si elegimos el modelo gamer y va rapido, dibujamos unas letras mucho mas espectaculares
+            // Si elegimos el modelo gamer y va rapido, dibujamos unas letras mucho mas espectaculares
             ctx.fillStyle = Tema.acento;
             ctx.font = 'bold 20px sans-serif';
             ctx.fillText(`${Math.floor(bateria)}%`, 0, cy + 50);
             ctx.font = '10px sans-serif';
             ctx.fillText("120W HYPER CHARGE", 0, 30);
             
-            // anadimos un anillo brillante alrededor para que se vea mas agresivo
+            // Anadimos un anillo brillante alrededor para que se vea mas agresivo
             ctx.shadowBlur = 20; ctx.shadowColor = Tema.acento;  
             ctx.strokeStyle = Tema.acento; ctx.beginPath(); ctx.arc(0, 0, 40, 0, Math.PI * 2); ctx.stroke();
             ctx.shadowBlur = 0;
         } else {
-            // para los demas telefonos, escribimos los textos con la fuente normal
+            // Para los demas telefonos, escribimos los textos con la fuente normal
             ctx.fillText(`${Math.floor(bateria)}%`, 0, cy - 25);
             ctx.fillText(estado === 'rapido' ? 'Carga Rápida' : 'Carga Lenta', 0, 25);
         }
     }
 
+    /**
+     * Calculamos y dibujamos la animacion de chispas y humo cuando el dispositivo
+     * sufre un fallo catastrofico por sobrevoltaje.
+     * 
+     * @param {CanvasRenderingContext2D} ctx - El pincel del canvas.
+     * @param {number} cx - Centro horizontal de la emision.
+     * @param {number} cy - Centro vertical de la emision.
+     * @param {Object} humoObj - Objeto que mantiene el estado y angulo de la animacion.
+     */
    static animarHumoYFuego(ctx, cx, cy, humoObj) {
     humoObj.angulo += 0.1;
 
-    // pool de chispas con posición suave en lugar de Math.random() puro
+        // Creamos un grupo de chispas con posicionamiento suave para evitar saltos bruscos en la animacion
     if (!humoObj.chispas) {
         humoObj.chispas = Array.from({length: 5}, (_, i) => ({
             x: (i - 2) * 10,
@@ -212,7 +261,7 @@ export class RenderizadorCelular {
         ctx.fillRect(c.x + Math.sin(humoObj.angulo + c.fase) * 6, c.y, 3, 3);
     });
 
-    // humo (sin cambio — ya es suave)
+        // Dibujamos el humo con opacidad y movimientos rotativos suaves
     ctx.fillStyle = 'rgba(100, 100, 100, 0.3)';
     for (let i = 0; i < 4; i++) {
         const ox = Math.sin(humoObj.angulo + i) * 15;

@@ -3,8 +3,18 @@ import { VistaMagnetismo } from './VistaMagnetismo.js';
 import { RenderizadorMagnetismo } from './renderizadores/Magnetismo.js';
 import { RenderizadorBomba } from './renderizadores/Bomba.js';
 
+/**
+ * Clase ControladorMagnetismo
+ * Actuamos como el intermediario entre la logica fisica (Modelo) y la
+ * representacion visual (Vista) del modulo de magnetismo.
+ */
 export class ControladorMagnetismo {
+    /**
+     * Construimos el controlador e inicializamos la simulacion.
+     * @param {HTMLElement} contenedor - Contenedor DOM para la vista.
+     */
     constructor(contenedor) {
+        // Instanciamos nuestro modelo y vista para conectarlos
         this.modelo = new ModeloMagnetismo();
         this.vista = new VistaMagnetismo(contenedor);
         this.isDragging = false;
@@ -15,18 +25,21 @@ export class ControladorMagnetismo {
         this.iniciar();
     }
 
+    /**
+     * Configuramos los eventos de interaccion del usuario y arrancamos la animacion.
+     */
     iniciar() {
-        // Inicializar posición del imán
+        // Inicializamos la posicion del iman en el lienzo
         this.modelo.setImanPos(this.vista.canvas.width * 0.7, this.vista.canvas.height / 2);
 
-        // Listeners de UI
+        // Configuramos los escuchadores para los controles de la Fuerza de Lorentz
         this.vista.sliderCorriente.addEventListener('input', (e) => this.modelo.setCorriente(e.target.value));
         this.vista.sliderFuerzaIman.addEventListener('input', (e) => this.modelo.setFuerzaIman(e.target.value));
         this.vista.btnInvertir.addEventListener('click', () => this.modelo.invertirIman());
         this.vista.checkVectores.addEventListener('change', (e) => this.modelo.mostrarVectores = e.target.checked);
         this.vista.checkCampo.addEventListener('change', (e) => this.modelo.mostrarCampo = e.target.checked);
 
-        // Listeners de UI Bomba
+        // Configuramos los escuchadores para los controles de la Bomba de Agua
         this.vista.btnModoMundo.addEventListener('click', () => {
             const nuevoModo = this.modelo.modoVista === 'diagrama' ? 'mundoReal' : 'diagrama';
             this.modelo.setModoVista(nuevoModo);
@@ -38,7 +51,7 @@ export class ControladorMagnetismo {
             this.vista.sliderVoltajeBomba.value = 0;
         });
 
-        // Listeners de Mouse para el Imán
+        // Configuramos los eventos del raton para arrastrar el iman
         this.vista.canvas.addEventListener('mousedown', (e) => this.onMouseDown(e));
         window.addEventListener('mousemove', (e) => this.onMouseMove(e));
         window.addEventListener('mouseup', () => this.isDragging = false);
@@ -49,13 +62,17 @@ export class ControladorMagnetismo {
         }).observe(this.vista.canvas.parentElement);
     }
 
+    /**
+     * Manejamos el evento de presionar el raton para detectar si tocamos el iman.
+     * @param {MouseEvent} e - Evento del raton.
+     */
     onMouseDown(e) {
         if (this.modelo.modoVista !== 'diagrama') return;
         const rect = this.vista.canvas.getBoundingClientRect();
         const mx = e.clientX - rect.left;
         const my = e.clientY - rect.top;
 
-        // Comprobar si clicamos sobre el imán
+        // Comprobamos si hicimos clic exactamente sobre la figura del iman
         const dx = mx - this.modelo.imanPos.x;
         const dy = my - this.modelo.imanPos.y;
         if (Math.abs(dx) < 60 && Math.abs(dy) < 30) {
@@ -63,6 +80,10 @@ export class ControladorMagnetismo {
         }
     }
 
+    /**
+     * Manejamos el arrastre del iman o la deteccion del puntero sobre el motor.
+     * @param {MouseEvent} e - Evento del raton.
+     */
     onMouseMove(e) {
         const rect = this.vista.canvas.getBoundingClientRect();
         const mx = e.clientX - rect.left;
@@ -70,7 +91,7 @@ export class ControladorMagnetismo {
         
         if (this.modelo.modoVista === 'diagrama') {
             if (!this.isDragging) return;
-            // Limitar movimiento al canvas
+            // Limitamos el movimiento para que el iman no salga del canvas
             const x = Math.max(50, Math.min(this.vista.canvas.width - 50, mx));
             const y = Math.max(50, Math.min(this.vista.canvas.height - 50, my));
             this.modelo.setImanPos(x, y);
@@ -80,7 +101,7 @@ export class ControladorMagnetismo {
             const xMotor = w * 0.3;
             const yBase = h * 0.8;
             
-            // Si el puntero del mouse está sobre la estructura del motor
+            // Si detectamos que el puntero esta sobre la estructura del motor mostramos el boton de zoom
             if (Math.hypot(mx - xMotor, my - yBase) < 80) {
                 this.vista.mostrarBotonZoom(xMotor, yBase, w, h);
             } else {
@@ -89,12 +110,16 @@ export class ControladorMagnetismo {
         }
     }
 
+    /**
+     * Mantenemos vivo el ciclo infinito de fisicas y dibujado.
+     * @param {number} tiempoActual - Marca de tiempo del frame.
+     */
     loop(tiempoActual) {
         if (!tiempoActual) tiempoActual = performance.now();
         const dt = (tiempoActual - this.tiempoAnterior) / 1000;
         this.tiempoAnterior = tiempoActual;
         
-        const dtSeguro = Math.min(dt, 0.1); // Límite para evitar explosiones de física
+        const dtSeguro = Math.min(dt, 0.1); // Aplicamos un limite para evitar explosiones de fisica
         this.modelo.actualizarFisica(dtSeguro);
         this.anguloMotor += (this.modelo.rpm * 360 / 60) * dtSeguro;
         
